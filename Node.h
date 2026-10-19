@@ -11,5 +11,4 @@ struct Node {
     double unitPrice;
     Node* next;
     Node* prev;
-    
 };
