@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-struct Data {
+struct Data { // Groups the data into a single data struct to efficiently sort them all together for a better optimized swap function.
     std::string menuItem;
     std::string modeOfPayment;
     std::string date;
@@ -22,4 +22,4 @@ struct Node {
     }
 };
 
-typedef Node* NodePtr;
+typedef Node* NodePtr; // Renamed the datatype Node* to NodePtr
