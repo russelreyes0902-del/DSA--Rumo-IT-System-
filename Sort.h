@@ -1,4 +1,8 @@
 #pragma once
 #include "Node.h"
 
-void swapNode(NodePtr node1, NodePtr node2); // swapNode function
+void swapNode(CafeNode &head, CafeNode node1, CafeNode node2); // swapNode function
+
+CafeNode partition(CafeNode &head, CafeNode low, CafeNode high, bool ascending);
+
+void quickSort(CafeNode &head, CafeNode low, CafeNode high, bool ascending) ;
