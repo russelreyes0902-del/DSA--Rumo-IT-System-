@@ -26,8 +26,11 @@ int getMonthyItemsSold(
     std::string targetSize = ""
     );
 
-int getYearlyItemsSold(CafeNode &head, 
+int getYearlyItemsSold(
+    CafeNode &head, 
     std::string targetYear, 
     std::string targetItem = "",
     std::string targetSize = ""
     );
+
+void printRecentPurchase(CafeNode &head);

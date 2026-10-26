@@ -215,7 +215,7 @@ int getYearlyItemsSold(
     return totalItemsSold;
 }
 
-void recentPurchase(CafeNode &head) {
+void printRecentPurchase(CafeNode &head) {
         if (head == nullptr) {
             std::cout << "\nNo recent transactions." << std::endl;
             return;
