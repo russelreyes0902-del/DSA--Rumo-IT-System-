@@ -1,6 +1,8 @@
 #include "Node.h"
 #include "Search.h"
 #include "Sort.h"
+#include <iomanip>
+#include <iostream>
 #pragma once
 
 // Use this file for Node purposes, i.e accessing node at position x, 
@@ -100,11 +102,26 @@ std::string convertMonthToNumber(std::string monthInput) {
         return "00"; // Return invalid code if input doesn't match
     }
 }
+
+int getTotalTransactions(CafeNode &head) { 
+    // NOTE: This uses O(n) linear search to count the total nodes. Update this when we have File I/O functions
+    // to dynamically calculat the amount of nodes without having to call the function again and again.
+    CafeNode current = head;
+    int count = 0;
+    
+    while (current != nullptr) {
+        count++;
+        current = current->next;
+    }
+
+    return count;
+}
 //Statistics function to get the amount of items sold in a single day.
 int getDailyItemsSold(
     CafeNode &head, 
     std::string targetDay, 
-    std::string targetItem = ""
+    std::string targetItem = "",
+    std::string targetSize = ""
     ) {
 
     if (head == nullptr) return 0;
@@ -119,7 +136,9 @@ int getDailyItemsSold(
             // items that are bought with different modeOfPayments are separated.
             // I.e node1 has spanish latte with quantity of 20 with mOP of Cash
             // and node2 has spanish latte with quantity of 15, with mOP of GCash
-            if (targetItem == "" || current->salesData.menuItem == targetItem) {
+            bool matchesItem = (targetItem == "" || current->salesData.menuItem == targetItem);
+            bool matchesSize = (targetSize == "" || current->salesData.sizeOfItem == targetSize);
+            if (matchesItem && matchesSize) {
                 totalItemsSold += current->salesData.quantity;
             }
         }
@@ -133,7 +152,8 @@ int getMonthlyItemsSold(
     CafeNode &head, 
     std::string monthInput, 
     std::string targetYear, 
-    std::string targetItem = ""
+    std::string targetItem = "",
+    std::string targetSize = ""
     ) {
 
     if (head == nullptr) return 0;
@@ -151,7 +171,9 @@ int getMonthlyItemsSold(
     while (current != nullptr) {
     std::string nodeMonthYear = current->salesData.date.substr(3, 7);
         if (nodeMonthYear == targetMonth) {
-            if (targetItem == "" || current->salesData.menuItem == targetItem) {
+            bool matchesItem = (targetItem == "" || current->salesData.menuItem == targetItem);
+            bool matchesSize = (targetSize == "" || current->salesData.sizeOfItem == targetSize);
+            if (matchesItem && matchesSize) {
                 totalItemsSold += current->salesData.quantity;
             }
         }
@@ -163,9 +185,10 @@ int getMonthlyItemsSold(
 int getYearlyItemsSold(
     CafeNode &head, 
     std::string targetYear, 
-    std::string targetItem = ""
+    std::string targetItem = "",
+    std::string targetSize = ""
     ) {
-        
+
     if (head == nullptr) return 0;
     CafeNode current = head;
     int totalItemsSold = 0;
@@ -173,10 +196,106 @@ int getYearlyItemsSold(
     while (current != nullptr) {
         std::string nodeYear = current->salesData.date.substr(6,4);
         if (nodeYear == targetYear) {
-            if (targetItem == "" || current->salesData.menuItem == targetItem) {
-                totalItemsSold+= current->salesData.quantity;
+            bool matchesItem = (targetItem == "" || current->salesData.menuItem == targetItem);
+            bool matchesSize = (targetSize == "" || current->salesData.sizeOfItem == targetSize);
+            if (matchesItem && matchesSize) {
+                totalItemsSold += current->salesData.quantity;
             }
         }
     }
     return totalItemsSold;
 }
+
+void recentPurchase(CafeNode &head) {
+        if (head == nullptr) {
+            std::cout << "\nNo recent transactions." << std::endl;
+            return;
+        }
+
+        int pageSize = 10;
+        int totalNodes = getTotalTransactions(head);
+        int currentPage = 1;
+        char choice;
+        
+        int totalPages = (totalNodes + pageSize - 1)/10;
+        do {
+            CafeNode current = head;            
+            int skipCount = (currentPage - 1) * pageSize;
+            for (int i = 0; i < skipCount && current != nullptr; i++) {
+                current = current->next;
+            }
+            
+            std::cout << "\n=========================================================================================================\n";
+            std::cout << "                      RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
+            std::cout << "=========================================================================================================\n";
+            std::cout << "Menu Item       | Size   | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
+            std::cout << "---------------------------------------------------------------------------------------------------------\n";
+
+            int printedCount = 0;
+            int startRecord = skipCount + 1;   
+
+            while (current != nullptr && printedCount < pageSize) {
+                std::string itemDisplay = current->salesData.menuItem;
+                if (current->salesData.sizeOfItem != "") {
+                    itemDisplay += " (" + current->salesData.sizeOfItem + ")";
+                }
+
+                if (itemDisplay.length() > 15) {
+                    itemDisplay = itemDisplay.substr(0, 12) + "...";
+                }
+
+                std::cout << std::left << std::setw(15) << itemDisplay << " | "
+                        << std::right << std::setw(3) << current->salesData.quantity << " | $"
+                        << std::fixed << std::setprecision(2)
+                        << std::setw(8) << current->salesData.unitPrice << " | $"
+                        << std::setw(9) << current->salesData.totalPrice << " | "
+                        << std::left << std::setw(12) << current->salesData.modeOfPayment;
+                        
+                if (current->salesData.isDiscounted) {
+                    std::cout << " | "
+                            << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | $"
+                            << std::setw(9) << current->salesData.discountedPrice;
+                } else {
+                    std::cout << " | "
+                            << std::right << std::setw(6) << "-" << " | "
+                            << std::setw(10) << "-";
+                }
+
+                std::cout << "\n";
+
+                current = current->next;
+                printedCount++;
+            }
+            int endRecord = skipCount + printedCount;
+
+            std::cout << "----------------------------------------------------------------------\n";
+            std::cout << "Displaying records " << startRecord << "-" << endRecord << " of " << totalNodes << "\n";
+            std::cout << "======================================================================\n";
+
+            // D. Interactive controls
+            std::cout << "Controls: ";
+            if (currentPage < totalPages) std::cout << "[N]ext  ";
+            if (currentPage > 1)          std::cout << "[P]revious  ";
+            std::cout << "[G]o to Page  [E]xit\n";
+            std::cout << "Enter choice: ";
+            std::cin >> choice;
+
+            if ((choice == 'N' || choice == 'n') && currentPage < totalPages) {
+                currentPage++;
+            } 
+            else if ((choice == 'P' || choice == 'p') && currentPage > 1) {
+                currentPage--;
+            } 
+            else if (choice == 'G' || choice == 'g') {
+                int targetPage;
+                std::cout << "Enter page number (1-" << totalPages << "): ";
+                std::cin >> targetPage;
+                if (targetPage >= 1 && targetPage <= totalPages) {
+                    currentPage = targetPage;
+                } 
+                else {
+                    std::cout << "Invalid page number!\n";
+                }
+            }
+        } while(choice != 'E' && choice != 'e');
+   }
