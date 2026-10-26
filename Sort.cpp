@@ -2,6 +2,7 @@
 #include "Search.h"
 #include "Node.h"
 #include "Sort.h"
+#include "AuditList.h"
 using namespace std;
 
 
@@ -14,11 +15,11 @@ void swapNode(CafeNode &head, CafeNode node1, CafeNode node2){ // swapNode funct
 }
 
 CafeNode partition(CafeNode &head, CafeNode low, CafeNode high, bool ascending) {
-    int pivot = high->salesData.count;
+    int pivot = high->count;
     CafeNode i = nullptr;
 
         for (CafeNode j = low; j != high; j = j->next) {
-            if ((j->salesData.count <= pivot && ascending) || (j->salesData.count >= pivot && !ascending)) {
+            if ((j->count <= pivot && ascending) || (j->count >= pivot && !ascending)) {
                 if (i == nullptr) i = low;
                 else i = i->next;
                 swapNode(head, i, j);
@@ -38,4 +39,3 @@ void quickSort(CafeNode &head, CafeNode low, CafeNode high, bool ascending) {
         quickSort(head, pivotNode->next, high, ascending);
     }
 }
-
