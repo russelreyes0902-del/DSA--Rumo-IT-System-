@@ -3,7 +3,16 @@
 #include "Sort.h"
 #include <iomanip>
 #include <iostream>
+#include <cstdlib> // 
 #pragma once
+
+void clearScreen() {
+#ifdef _WIN32
+    system("cls");   // Windows
+#else
+    system("clear"); // Linux / macOS
+#endif
+}
 
 // Use this file for Node purposes, i.e accessing node at position x, 
 // updating node at position x, deleting and insertion of nodes.
@@ -219,6 +228,8 @@ void recentPurchase(CafeNode &head) {
         
         int totalPages = (totalNodes + pageSize - 1)/10;
         do {
+            clearScreen();
+
             CafeNode current = head;            
             int skipCount = (currentPage - 1) * pageSize;
             for (int i = 0; i < skipCount && current != nullptr; i++) {
@@ -226,7 +237,7 @@ void recentPurchase(CafeNode &head) {
             }
             
             std::cout << "\n=========================================================================================================\n";
-            std::cout << "                      RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
+            std::cout << "                                 RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
             std::cout << "=========================================================================================================\n";
             std::cout << "Menu Item       | Size   | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
             std::cout << "---------------------------------------------------------------------------------------------------------\n";
@@ -236,15 +247,20 @@ void recentPurchase(CafeNode &head) {
 
             while (current != nullptr && printedCount < pageSize) {
                 std::string itemDisplay = current->salesData.menuItem;
-                if (current->salesData.sizeOfItem != "") {
-                    itemDisplay += " (" + current->salesData.sizeOfItem + ")";
-                }
-
                 if (itemDisplay.length() > 15) {
                     itemDisplay = itemDisplay.substr(0, 12) + "...";
                 }
 
+                std::string sizeDisplay = current->salesData.sizeOfItem;
+                if (sizeDisplay == "") {
+                    sizeDisplay = "-";
+                }
+                if (sizeDisplay.length() > 6) {
+                    sizeDisplay = sizeDisplay.substr(0, 5) + ".";
+                }
+
                 std::cout << std::left << std::setw(15) << itemDisplay << " | "
+                        << std::left << std::setw(6)  << sizeDisplay << " | "
                         << std::right << std::setw(3) << current->salesData.quantity << " | $"
                         << std::fixed << std::setprecision(2)
                         << std::setw(8) << current->salesData.unitPrice << " | $"
@@ -272,7 +288,6 @@ void recentPurchase(CafeNode &head) {
             std::cout << "Displaying records " << startRecord << "-" << endRecord << " of " << totalNodes << "\n";
             std::cout << "======================================================================\n";
 
-            // D. Interactive controls
             std::cout << "Controls: ";
             if (currentPage < totalPages) std::cout << "[N]ext  ";
             if (currentPage > 1)          std::cout << "[P]revious  ";
