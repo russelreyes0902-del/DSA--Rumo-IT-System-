@@ -14,6 +14,21 @@ void swapNode(CafeNode &head, CafeNode node1, CafeNode node2){ // swapNode funct
     node2->salesData = temp;
 }
 
+int parseDate(const string& dateStr) {
+    if (dateStr.length() != 10 || dateStr[2] != '-' || dateStr[5] != '-') return 0;
+    
+    try { // Error handling so that the program doesn't crash.
+        string day = dateStr.substr(0, 2);
+        string month = dateStr.substr(3, 2);
+        string year = dateStr.substr(6, 4);
+
+        return stoi(year + month + day);
+    }
+    catch (...) {
+        return 0;
+    }
+}
+
 CafeNode partition(CafeNode &head, CafeNode low, CafeNode high, bool ascending) {
     int pivot = high->count;
     CafeNode i = nullptr;
