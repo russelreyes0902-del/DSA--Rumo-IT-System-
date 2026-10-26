@@ -18,11 +18,11 @@ void clearScreen() {
 // updating node at position x, deleting and insertion of nodes.
 CafeNode tail(CafeNode &head) {
     if (head == nullptr) return nullptr;
-    CafeNode temp = head;
-    while (temp->next != nullptr) {
-        temp = temp->next;
+    CafeNode current = head;
+    while (current->next != nullptr) {
+        current = current->next;
     }
-    return temp;
+    return current;
 }
 
 std::string convertMonthToNumber(std::string monthInput) {  
