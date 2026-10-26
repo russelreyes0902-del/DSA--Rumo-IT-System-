@@ -3,8 +3,7 @@
 #include "Sort.h"
 #include <iomanip>
 #include <iostream>
-#include <cstdlib> // 
-#pragma once
+#include <cstdlib> 
 
 void clearScreen() {
 #ifdef _WIN32
@@ -211,6 +210,7 @@ int getYearlyItemsSold(
                 totalItemsSold += current->salesData.quantity;
             }
         }
+        current = current->next;
     }
     return totalItemsSold;
 }
@@ -236,52 +236,72 @@ void printRecentPurchase(CafeNode &head) {
                 current = current->next;
             }
             
-            std::cout << "\n=========================================================================================================\n";
-            std::cout << "                                 RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
-            std::cout << "=========================================================================================================\n";
-            std::cout << "Menu Item       | Size   | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
-            std::cout << "---------------------------------------------------------------------------------------------------------\n";
+        std::cout << "\n====================================================================================================================================================\n";
+        std::cout << "                                                    RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
+        std::cout << "====================================================================================================================================================\n";
+        std::cout << "Menu Item       | Size   | Temp | Extras       | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
+       std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------\n";
 
-            int printedCount = 0;
-            int startRecord = skipCount + 1;   
+        int printedCount = 0;
+        int startRecord = skipCount + 1;   
 
-            while (current != nullptr && printedCount < pageSize) {
-                std::string itemDisplay = current->salesData.menuItem;
-                if (itemDisplay.length() > 15) {
-                    itemDisplay = itemDisplay.substr(0, 12) + "...";
-                }
-
-                std::string sizeDisplay = current->salesData.sizeOfItem;
-                if (sizeDisplay == "") {
-                    sizeDisplay = "-";
-                }
-                if (sizeDisplay.length() > 6) {
-                    sizeDisplay = sizeDisplay.substr(0, 5) + ".";
-                }
-
-                std::cout << std::left << std::setw(15) << itemDisplay << " | "
-                        << std::left << std::setw(6)  << sizeDisplay << " | "
-                        << std::right << std::setw(3) << current->salesData.quantity << " | $"
-                        << std::fixed << std::setprecision(2)
-                        << std::setw(8) << current->salesData.unitPrice << " | $"
-                        << std::setw(9) << current->salesData.totalPrice << " | "
-                        << std::left << std::setw(12) << current->salesData.modeOfPayment;
-                        
-                if (current->salesData.isDiscounted) {
-                    std::cout << " | "
-                            << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | $"
-                            << std::setw(9) << current->salesData.discountedPrice;
-                } else {
-                    std::cout << " | "
-                            << std::right << std::setw(6) << "-" << " | "
-                            << std::setw(10) << "-";
-                }
-
-                std::cout << "\n";
-
-                current = current->next;
-                printedCount++;
+        while (current != nullptr && printedCount < pageSize) {
+            // 1. Format menuItem display (15 chars)
+            std::string itemDisplay = current->salesData.menuItem;
+            if (itemDisplay.length() > 15) {
+                itemDisplay = itemDisplay.substr(0, 12) + "...";
             }
+
+            std::string sizeDisplay = current->salesData.sizeOfItem;
+            if (sizeDisplay == "" || sizeDisplay == "None") {
+                sizeDisplay = "-";
+            }
+            if (sizeDisplay.length() > 6) {
+                sizeDisplay = sizeDisplay.substr(0, 5) + ".";
+            }
+
+            std::string tempDisplay = current->salesData.tempOfDrink;
+            if (tempDisplay == "" || tempDisplay == "None") {
+                tempDisplay = "-";
+            }
+            if (tempDisplay.length() > 4) {
+                tempDisplay = tempDisplay.substr(0, 4);
+            }
+
+            std::string extrasDisplay = current->salesData.extras;
+            if (extrasDisplay == "" || extrasDisplay == "None") {
+                extrasDisplay = "-";
+            }
+            if (extrasDisplay.length() > 12) {
+                extrasDisplay = extrasDisplay.substr(0, 9) + "...";
+            }
+
+            // 5. Print formatted row with separate Extras column
+            std::cout << std::left << std::setw(15) << itemDisplay << " | "
+                      << std::left << std::setw(6)  << sizeDisplay << " | "
+                      << std::left << std::setw(4)  << tempDisplay << " | "
+                      << std::left << std::setw(12) << extrasDisplay << " | "
+                      << std::right << std::setw(3) << current->salesData.quantity << " | $"
+                      << std::fixed << std::setprecision(2)
+                      << std::setw(8) << current->salesData.unitPrice << " | $"
+                      << std::setw(9) << current->salesData.totalPrice << " | "
+                      << std::left << std::setw(12) << current->salesData.modeOfPayment;
+                      
+            if (current->salesData.isDiscounted) {
+                std::cout << " | "
+                          << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | $"
+                          << std::setw(9) << current->salesData.discountedPrice;
+            } else {
+                std::cout << " | "
+                          << std::right << std::setw(6) << "-" << " | "
+                          << std::setw(10) << "-";
+            }
+
+            std::cout << "\n";
+
+            current = current->next;
+            printedCount++;
+        }
             int endRecord = skipCount + printedCount;
 
             std::cout << "----------------------------------------------------------------------\n";
@@ -310,6 +330,8 @@ void printRecentPurchase(CafeNode &head) {
                 } 
                 else {
                     std::cout << "Invalid page number!\n";
+                    std::cin.ignore();
+                    std::cin.get();
                 }
             }
         } while(choice != 'E' && choice != 'e');
