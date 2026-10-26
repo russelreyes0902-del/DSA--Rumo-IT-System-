@@ -3,13 +3,15 @@
 
 struct SalesData { // Groups the data into a single data struct to efficiently sort them all together for a better optimized swap function.
     std::string menuItem;
+    std::string tempOfDrink;
     std::string sizeOfItem; // set the string sizeOfItem = "" if the item doesn't have a size.
+    std::string extras;
     std::string typeOfDiscount; // if typeOfDiscount is None, set isDiscounted to false.
     std::string modeOfPayment;
     std::string date;
     double totalPrice; // totalPrice per quantity per modeOfPayment
-    int quantity;
     double unitPrice;
+    int quantity;
     int referenceID; // if modeOfPayment is Cash, set referenceID equal to 0.
     int transactionID;
     int discountedPrice; // set to 0 if isDiscounted is false
@@ -23,17 +25,19 @@ struct Node {
     Node* next;
     Node* prev;
 
-    Node(std::string mI, std::string mO, std::string sOI, 
-        std::string tOD, std::string d, double tP, 
-        int q, double uP, int rID, 
-        int tID, int discountedPrice, int discountedPercentage, 
-        bool iD, int c) {
+    Node(std::string mI, std::string tempD, std::string sOI,
+        std::string e, std::string tOD, std::string mOP,
+        std::string d, double tP, double uP,
+        int q, int rID, int tID, 
+        int dPrice, int dPercent, bool isD,
+        int c
+        ) {
         salesData = {
-            mI, mO, sOI, 
-            tOD, d, tP, 
-            q, uP, rID, 
-            tID, discountedPrice, discountedPercentage, 
-            iD
+            mI, tempD, sOI,
+            e, toD, mOP,
+            d, tP, uP,
+            q, rID, tID,
+            dPrice, dPercecnt, isD
         };
         count = c;
         next = nullptr;
