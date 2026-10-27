@@ -1,0 +1,66 @@
+menuItemID,menuCategory,menuItem,totalPrice,drinkOfTemp,sizeOfItem
+101,Dessert,Giant Chocolate Chip Cookie,120,,
+102,Dessert,Pain Au Chocolat,135,,
+103,Dessert,Blueberry Cheesecake,165,,
+104,Dessert,Chocolate Mousse Cake,165,,
+105,Dessert,Sans Rival,170,,
+106,Non-Coffee,Matcha Latte,160,,Regular
+107,Non-Coffee,Matcha Latte,180,,Large
+108,Non-Coffee,Strawberry Matcha Latte,175,,Regular
+109,Non-Coffee,Strawberry Matcha Latte,195,,Large
+110,Non-Coffee,Hojicha Latte,170,,Regular
+111,Non-Coffee,Hojicha Latte,190,,Large
+112,Non-Coffee,White Chocolate Latte,160,,Regular
+113,Non-Coffee,White Chocolate Latte,180,,Large
+114,Non-Coffee,Pistachio Cream Latte,170,,Regular
+115,Non-Coffee,Pistachio Cream Latte,190,,Large
+116,Non-Coffee,Lemon Cooler,150,,Regular
+117,Non-Coffee,Lemon Cooler,170,,Large
+118,Non-Coffee,Mixed Berries Cooler,150,,Regular
+119,Non-Coffee,Mixed Berries Cooler,170,,Large
+120,Non-Coffee,Mango Berry Cooler,150,,Regular
+121,Non-Coffee,Mango Berry Cooler,170,,Large
+122,Coffee,Espresso,130,Iced,Regular
+123,Coffee,Espresso,120,Hot,Regular
+124,Coffee,Espresso,150,Iced,Large
+125,Coffee,Espresso,140,Hot,Large
+126,Coffee,Americano,130,Iced,Regular
+127,Coffee,Americano,120,Hot,Regular
+128,Coffee,Americano,150,Iced,Large
+129,Coffee,Americano,140,Hot,Large
+130,Coffee,Caffè Latte,140,Iced,Regular
+131,Coffee,Caffè Latte,130,Hot,Regular
+132,Coffee,Caffè Latte,160,Iced,Large
+133,Coffee,Caffè Latte,150,Hot,Large
+134,Coffee,Cappucino,140,Iced,Regular
+135,Coffee,Cappucino,130,Hot,Regular
+136,Coffee,Cappucino,160,Iced,Large
+137,Coffee,Cappucino,150,Hot,Large
+138,Coffee,Caramel Latte,150,Iced,Regular
+139,Coffee,Caramel Latte,140,Hot,Regular
+140,Coffee,Caramel Latte,170,Iced,Large
+141,Coffee,Caramel Latte,160,Hot,Large
+142,Coffee,Mocha Latte,150,Iced,Regular
+143,Coffee,Mocha Latte,140,Hot,Regular
+144,Coffee,Mocha Latte,170,Iced,Large
+145,Coffee,Mocha Latte,160,Hot,Large
+146,Coffee,Hazelnut Latte,160,Iced,Regular
+147,Coffee,Hazelnut Latte,150,Hot,Regular
+148,Coffee,Hazelnut Latte,180,Iced,Large
+149,Coffee,Hazelnut Latte,170,Hot,Large
+150,Coffee,Vanilla Latte,160,Iced,Regular
+151,Coffee,Vanilla Latte,150,Hot,Regular
+152,Coffee,Vanilla Latte,180,Iced,Large
+153,Coffee,Vanilla Latte,170,Hot,Large
+154,Coffee,Biscoff Crunch Latte,170,Iced,Regular
+155,Coffee,Biscoff Crunch Latte,160,Hot,Regular
+156,Coffee,Biscoff Crunch Latte,190,Iced,Large
+157,Coffee,Biscoff Crunch Latte,180,Hot,Large
+158,Extras,Espresso Shot,30,,
+159,Extras,Syrup Pump Vanilla,25,,
+160,Extras,Syrup Pump Hazelnut,25,,
+161,Extras,Syrup Pump Caramel,25,,
+162,Extras,Syrup Pump Biscoff,25,,
+163,Extras,Milk Oat,35,,
+164,Extras,Milk Almond,35,,
+165,Extras,Milk Soy,35,,
