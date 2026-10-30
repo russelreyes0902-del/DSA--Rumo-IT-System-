@@ -1,9 +1,9 @@
+#pragma once
 #include "Node.h"
-#include "Search.h"
-#include "Sort.h"
+//#include "Search.h"
+//#include "Sort.h"
 #include <iomanip>
 #include <iostream>
-#pragma once
 
 CafeNode tail(CafeNode &head);
 
@@ -18,7 +18,7 @@ int getDailyItemsSold(
     std::string targetSize = ""
     );
 
-int getMonthyItemsSold(
+int getMonthlyItemsSold(
     CafeNode &head, 
     std::string monthInput, 
     std::string targetYear, 

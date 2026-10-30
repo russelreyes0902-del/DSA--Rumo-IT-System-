@@ -1,6 +1,7 @@
 #include "Node.h"
 #include "Search.h"
 #include "Sort.h"
+#include "AuditList.h"
 #include <iomanip>
 #include <iostream>
 #include <cstdlib> 
@@ -29,6 +30,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     if (monthInput == "January" || 
         monthInput == "january" || 
         monthInput == "Jan" || 
+        monthInput == "jan" ||
         monthInput == "01" || 
         monthInput == "1") {
         return "01";
@@ -36,6 +38,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "February" || 
             monthInput == "february" || 
             monthInput == "Feb" || 
+            monthInput == "feb" ||
             monthInput == "02" || 
             monthInput == "2") {
         return "02";
@@ -43,6 +46,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "March" || 
             monthInput == "march" || 
             monthInput == "Mar" || 
+            monthInput == "mar" ||
             monthInput == "03" || 
             monthInput == "3") {
         return "03";
@@ -50,6 +54,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "April" || 
             monthInput == "april" || 
             monthInput == "Apr" || 
+            monthInput == "apr" ||
             monthInput == "04" || 
             monthInput == "4") {
         return "04";
@@ -63,6 +68,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "June" || 
             monthInput == "june" || 
             monthInput == "Jun" || 
+            monthInput == "jun" ||
             monthInput == "06" || 
             monthInput == "6") {
         return "06";
@@ -70,6 +76,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "July" || 
             monthInput == "july" || 
             monthInput == "Jul" || 
+            monthInput == "jul" ||
             monthInput == "07" || 
             monthInput == "7") {
         return "07";
@@ -77,6 +84,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "August" || 
             monthInput == "august" || 
             monthInput == "Aug" || 
+            monthInput == "aug" ||
             monthInput == "08" || 
             monthInput == "8") {
         return "08";
@@ -84,6 +92,7 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "September" || 
             monthInput == "september" || 
             monthInput == "Sep" || 
+            monthInput == "sep" ||
             monthInput == "09" || 
             monthInput == "9") {
         return "09";
@@ -91,18 +100,21 @@ std::string convertMonthToNumber(std::string monthInput) {
     else if (monthInput == "October" || 
             monthInput == "october" || 
             monthInput == "Oct" || 
+            monthInput == "oct" ||
             monthInput == "10") {
         return "10";
     } 
     else if (monthInput == "November" || 
             monthInput == "november" || 
             monthInput == "Nov" || 
+            monthInput == "nov" ||
             monthInput == "11") {
         return "11";
     } 
     else if (monthInput == "December" || 
             monthInput == "december" || 
             monthInput == "Dec" || 
+            monthInput == "dec" ||
             monthInput == "12") {
         return "12";
     } 
@@ -128,8 +140,8 @@ int getTotalTransactions(CafeNode &head) {
 int getDailyItemsSold(
     CafeNode &head, 
     std::string targetDay, 
-    std::string targetItem = "",
-    std::string targetSize = ""
+    std::string targetItem,
+    std::string targetSize
     ) {
 
     if (head == nullptr) return 0;
@@ -160,8 +172,8 @@ int getMonthlyItemsSold(
     CafeNode &head, 
     std::string monthInput, 
     std::string targetYear, 
-    std::string targetItem = "",
-    std::string targetSize = ""
+    std::string targetItem,
+    std::string targetSize
     ) {
 
     if (head == nullptr) return 0;
@@ -193,8 +205,8 @@ int getMonthlyItemsSold(
 int getYearlyItemsSold(
     CafeNode &head, 
     std::string targetYear, 
-    std::string targetItem = "",
-    std::string targetSize = ""
+    std::string targetItem,
+    std::string targetSize
     ) {
 
     if (head == nullptr) return 0;
@@ -239,7 +251,7 @@ void printRecentPurchase(CafeNode &head) {
         std::cout << "\n====================================================================================================================================================\n";
         std::cout << "                                                    RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
         std::cout << "====================================================================================================================================================\n";
-        std::cout << "Menu Item       | Size   | Temp | Extras       | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
+        std::cout << "Menu Item       | Size   | Temp | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
        std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------\n";
 
         int printedCount = 0;
@@ -268,19 +280,10 @@ void printRecentPurchase(CafeNode &head) {
                 tempDisplay = tempDisplay.substr(0, 4);
             }
 
-            std::string extrasDisplay = current->salesData.extras;
-            if (extrasDisplay == "" || extrasDisplay == "None") {
-                extrasDisplay = "-";
-            }
-            if (extrasDisplay.length() > 12) {
-                extrasDisplay = extrasDisplay.substr(0, 9) + "...";
-            }
-
             // 5. Print formatted row with separate Extras column
             std::cout << std::left << std::setw(15) << itemDisplay << " | "
                       << std::left << std::setw(6)  << sizeDisplay << " | "
                       << std::left << std::setw(4)  << tempDisplay << " | "
-                      << std::left << std::setw(12) << extrasDisplay << " | "
                       << std::right << std::setw(3) << current->salesData.quantity << " | $"
                       << std::fixed << std::setprecision(2)
                       << std::setw(8) << current->salesData.unitPrice << " | $"

@@ -5,7 +5,6 @@ struct SalesData { // Groups the data into a single data struct to efficiently s
     std::string menuItem;
     std::string tempOfDrink;
     std::string sizeOfItem; // set the string sizeOfItem = "" if the item doesn't have a size.
-    std::string extras;
     std::string typeOfDiscount; // if typeOfDiscount is None, set isDiscounted to false.
     std::string modeOfPayment;
     std::string date;
@@ -25,16 +24,16 @@ struct Node {
     Node* next;
     Node* prev;
 
-    Node(std::string mI, std::string tempD, std::string sOI,
-        std::string e, std::string tOD, std::string mOP,
+    Node(std::string mI, std::string tempD, std::string sOI, 
+        std::string tOD, std::string mOP,
         std::string d, double tP, double uP,
         int q, long long rID, int tID, 
         int dPrice, int dPercent, bool isD,
         int c
         ) {
         salesData = {
-            mI, tempD, sOI,
-            e, tOD, mOP,
+            mI, tempD, sOI, 
+            tOD, mOP,
             d, tP, uP,
             q, rID, tID,
             dPrice, dPercent, isD
