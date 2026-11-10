@@ -235,6 +235,9 @@ void printRecentPurchase(CafeNode &head) {
             return;
         }
 
+        MenuSkip skipList;
+        skipList.buildFromList(head);
+
         int pageSize = 10;
         int totalNodes = getTotalTransactions(head);
         int currentPage = 1;
@@ -316,7 +319,7 @@ void printRecentPurchase(CafeNode &head) {
             std::cout << "Controls: ";
             if (currentPage < totalPages) std::cout << "[N]ext  ";
             if (currentPage > 1)          std::cout << "[P]revious  ";
-            std::cout << "[G]o to Page  [E]xit\n";
+            std::cout << "[G]o to Page  [S]earch  [E]xit\n";
             std::cout << "Enter choice: ";
             std::getline(std::cin >> std::ws, choice);
             char answer = choice[0];
@@ -356,6 +359,9 @@ void printRecentPurchase(CafeNode &head) {
                         std::cout << "Invalid entry! Must be a number. Press Enter to continue...";
                         std::cin.get();
                     }
+                }
+                else if (answer == 'S' || answer == 's'){
+                    printSearchPurchase(head, skipList);
                 }
                 else {
                     std::cin.clear();
