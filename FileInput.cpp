@@ -56,6 +56,7 @@ void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords)
     std:: getline(iFile, line); //skips header
 
     int recordCount = 0; //initialize record count
+    CafeNode tail = nullptr;
 
     while (std:: getline(iFile, line) && (maxRecords == 0 || recordCount < maxRecords)){
         if (line.empty()) continue; 
@@ -66,21 +67,21 @@ void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords)
         std:: string unitPriceStr, totalPriceStr, typeOfDiscount, discountedPriceStr, discountedPercentageStr, referenceIDStr, transactionIDStr;
         
         //must match audit data csv
-        std:: getline(ss, date, ',');
-        std:: getline(ss, menuItemID, ',');
-        std:: getline(ss, menuCategory, ',');
-        std:: getline(ss, menuItem, ',');
-        std:: getline(ss, tempOfDrink, ',');
-        std:: getline(ss, sizeOfItem, ',');
-        std:: getline(ss, quantityStr, ',');
-        std:: getline(ss, modeOfPayment, ',');
-        std:: getline(ss, unitPriceStr, ',');
-        std:: getline(ss, totalPriceStr, ',');
-        std:: getline(ss, typeOfDiscount, ',');
-        std:: getline(ss, discountedPriceStr, ',');
-        std:: getline(ss, discountedPercentageStr, ',');
-        std:: getline(ss, referenceIDStr, ',');
-        std:: getline(ss, transactionIDStr, ',');
+        std::getline(ss, date, ',');
+        std::getline(ss, menuItemID, ',');
+        std::getline(ss, menuCategory, ',');
+        std::getline(ss, menuItem, ',');
+        std::getline(ss, tempOfDrink, ',');
+        std::getline(ss, sizeOfItem, ',');
+        std::getline(ss, quantityStr, ',');
+        std::getline(ss, modeOfPayment, ',');
+        std::getline(ss, unitPriceStr, ',');
+        std::getline(ss, totalPriceStr, ',');
+        std::getline(ss, typeOfDiscount, ',');
+        std::getline(ss, discountedPriceStr, ',');
+        std::getline(ss, discountedPercentageStr, ',');
+        std::getline(ss, referenceIDStr, ',');
+        std::getline(ss, transactionIDStr, ',');
 
         tempOfDrink = cleanMissingValue(tempOfDrink, "N/A");
         sizeOfItem = cleanMissingValue(sizeOfItem, "N/A");
@@ -95,19 +96,21 @@ void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords)
         double discountedPrice = isDiscounted ? convertToDouble(discountedPriceStr) : 0.0;
         double discountedPercentage = isDiscounted ? convertToDouble(discountedPercentageStr) : 0.0;
     
-    CafeNode newNode = new Node(menuItem, tempOfDrink, sizeOfItem, typeOfDiscount, modeOfPayment, date, totalPrice, unitPrice, quantity, referenceID, transactionID, discountedPrice, discountedPercentage, isDiscounted, recordCount + 1);
+        CafeNode newNode = new Node(
+            menuItem, tempOfDrink, sizeOfItem, typeOfDiscount,
+            modeOfPayment, date, totalPrice, unitPrice, quantity,
+            referenceID, transactionID, discountedPrice,
+            discountedPercentage, isDiscounted, recordCount + 1
+        );
 
-    if (head == nullptr) {
-        head = newNode;
-    } 
-
-    else {
-        CafeNode current = head;
-        while (current->next != nullptr){
-            current = current->next;
-        }
-        current->next = newNode;
-        newNode->prev = current;
+        if (head == nullptr) {
+            head = newNode;
+            tail = newNode;
+        } 
+        else {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
         }
         recordCount++;
     }
