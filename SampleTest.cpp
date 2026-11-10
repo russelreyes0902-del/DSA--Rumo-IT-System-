@@ -18,7 +18,7 @@ int main () {
     loadMenuData("menu_data.csv");
     loadAuditData("audit_data.csv", head);
     
-    printSummaryStatistics(head);
+    printMenu("menu_data.csv");
 
     return 0;
 }

@@ -4,5 +4,6 @@
 
 void loadMenuData(const std:: string &filename);
 void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords = 0);
+void printMenu(const std::string &filename);
 
 //loads the menu data and audit data

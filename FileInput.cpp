@@ -1,6 +1,9 @@
 #include <fstream> //handles both input and output file streams
 #include <sstream> 
+#include <iostream>
+#include <iomanip>
 #include "FileInput.h"
+#include "AuditList.h"
 
 //function for missing values 
 std:: string cleanMissingValue(const std:: string &input, const std:: string &defaultValue = "-"){
@@ -133,4 +136,68 @@ void loadMenuData(const std:: string &filename) {
     iFile.close();
 }
 
+void printMenu(const std::string &filename) {
+    std::ifstream iFile(filename);
+
+    if (!iFile.is_open()) {
+        std::cout << "\nError: Could not open menu file \"" << filename << "\".\n";
+        std::cout << "Press Enter to return...";
+        std::cin.get();
+        return;
+    }
+
+    std::string line;
+    std::getline(iFile, line); // Skip header: menuItemID,menuCategory,menuItem,totalPrice,drinkOfTemp,sizeOfItem
+
+    clearScreen();
+
+    std::cout << "\n=========================================================================================\n";
+    std::cout << "                                RUMO-IT SYSTEM - MENU                                    \n";
+    std::cout << "=========================================================================================\n";
+    std::cout << std::left << std::setw(8)  << "ID" 
+              << std::setw(15) << "Category" 
+              << std::setw(30) << "Menu Item" 
+              << std::setw(12) << "Temp" 
+              << std::setw(12) << "Size" 
+              << std::right << std::setw(10) << "Price" << "\n";
+    std::cout << "-----------------------------------------------------------------------------------------\n";
+
+    int itemCount = 0;
+    while (std::getline(iFile, line)) {
+        if (line.empty()) continue;
+
+        std::stringstream ss(line);
+        std::string id, category, name, priceStr, temp, size;
+
+        // Parse CSV columns matching menu_data.csv format
+        std::getline(ss, id, ',');        // menuItemID
+        std::getline(ss, category, ',');  // menuCategory
+        std::getline(ss, name, ',');      // menuItem
+        std::getline(ss, priceStr, ',');  // totalPrice (Price per unit)
+        std::getline(ss, temp, ',');      // drinkOfTemp
+        std::getline(ss, size, ',');      // sizeOfItem
+
+        // Clean up empty optional fields for better visual presentation
+        if (temp.empty()) temp = "-";
+        if (size.empty()) size = "-";
+
+        double price = convertToDouble(priceStr);
+
+        std::cout << std::left << std::setw(8)  << id 
+                  << std::setw(15) << category 
+                  << std::setw(30) << name 
+                  << std::setw(12) << temp 
+                  << std::setw(12) << size 
+                  << " ₱" << std::right << std::setw(8) << std::fixed << std::setprecision(2) << price << "\n";
+        itemCount++;
+    }
+
+    iFile.close();
+
+    std::cout << "-----------------------------------------------------------------------------------------\n";
+    std::cout << "Total Menu Items Listed: " << itemCount << "\n";
+    std::cout << "========================================================================================-\n";
+    std::cout << "Press Enter to return to main menu...";
+    std::cin.get();
+}
 
