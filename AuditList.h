@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <iostream>
 
+void clearScreen();
+
 CafeNode tail(CafeNode &head);
 
 std::string convertMonthToNumber(std::string monthInput);
