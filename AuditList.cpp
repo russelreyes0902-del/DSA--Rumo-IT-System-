@@ -409,3 +409,177 @@ void printAllPurchases(CafeNode &head, const std::string& title) {
 
     printPaginatedPurchases(head, title, -1);
 }
+
+void printSummaryStatistics(CafeNode &head) {
+    if (head == nullptr) {
+        std::cout << "\nNo transactions available for summary statistics.\n";
+        std::cout << "Press Enter to return...";
+        std::cin.get();
+        return;
+    }
+    MenuSkip skipList;
+    skipList.buildFromList(head);
+
+    std::string choice;
+    do {
+        clearScreen();
+
+        double overallRevenue = 0.0;
+        long long overallUnits = 0;
+        
+        CafeNode current = head;
+        CafeNode topItemNode = head;
+        long long maxItemUnits = -1;
+
+        while (current != nullptr) {
+            overallRevenue += current->salesData.totalPrice;
+            overallUnits += current->salesData.quantity;
+
+            if (current->salesData.quantity > maxItemUnits) {
+                maxItemUnits = current->salesData.quantity;
+                topItemNode = current;
+            }
+            current = current->next;
+        }
+        std::string highestSellingItem = (topItemNode != nullptr) ? topItemNode->salesData.menuItem : "N/A";
+       
+        std::cout << "\n======================================================================\n";
+        std::cout << "                        SALES SUMMARY STATISTICS                      \n";
+        std::cout << "======================================================================\n";
+        std::cout << "Highest Selling Item : " << highestSellingItem << "\n";
+        std::cout << "Total Revenue        : ₱" << std::fixed << std::setprecision(2) << overallRevenue << "\n";
+        std::cout << "Total Units Sold     : " << overallUnits << "\n";
+        std::cout << "----------------------------------------------------------------------\n";
+        std::cout << "Choose [Y]early, [M]onthly, [D]aily filter, or [E]xit: ";
+        
+        std::getline(std::cin >> std::ws, choice);
+
+        if (choice == "E" || choice == "e") {
+            break;
+        }
+        else if (choice == "Y" || choice == "y" || choice == "M" || choice == "m" || choice == "D" || choice == "d") {
+            std::string timeInput;
+            std::string filterTypeLabel = "";
+
+            if (choice == "Y" || choice == "y") {
+                filterTypeLabel = "Yearly";
+                std::cout << "Enter Year (e.g., 2026): ";
+            }
+            else if (choice == "M" || choice == "m") {
+                filterTypeLabel = "Yearly";
+                std::cout << "Enter Month and Year (e.g., 10-2026): ";
+            }
+            else if (choice == "D" || choice == "d") {
+                filterTypeLabel = "Daily";
+                std::cout << "Enter date (YYY-MM-DD): ";
+            }
+            std::getline(std::cin >> std::ws, timeInput);
+
+            double filteredRevenue = 0.0;
+            double filteredUnits = 0;
+            CafeNode filteredHead = nullptr;
+            CafeNode filteredTail = nullptr;
+
+            current = head;
+            while (current != nullptr) {
+                bool matches = false;
+                std::string dateStr = current->salesData.date;
+
+                if (filterTypeLabel == "Yearly") {
+                    if (dateStr.length() >= 4 && dateStr.substr(0,4) == timeInput) matches = true;
+                }
+                else if (filterTypeLabel == "Monthly") {
+                    std::string monthNum = convertMonthToNumber(timeInput);
+                    if (dateStr.length() >= 7 
+                        && 
+                        (dateStr.find(timeInput) != std::string::npos || (monthNum != "00" && dateStr.substr(5, 2) == monthNum))) {
+                        matches = true;
+                    }
+                }
+                else {
+                    int targetDateKey = parseDate(timeInput);
+                    int nodeDateKey = parseDate(dateStr);
+
+                    if (targetDateKey != 0 && nodeDateKey != 0 && nodeDateKey == targetDateKey) {
+                        matches = true;
+                    } else if (dateStr == timeInput) { // Fallback to exact string match
+                        matches = true;
+                    }
+                }
+
+                if (matches) {
+                    filteredRevenue += current->salesData.totalPrice;
+                    filteredUnits += current->salesData.quantity;
+
+                    SalesData data = current->salesData;
+                    CafeNode newNode = new Node(
+                        data.menuItem, 
+                        data.tempOfDrink, 
+                        data.sizeOfItem,
+                        data.typeOfDiscount, 
+                        data.modeOfPayment, 
+                        data.date,
+                        data.totalPrice, 
+                        data.unitPrice, 
+                        data.quantity,
+                        data.referenceID, 
+                        data.transactionID,
+                        data.discountedPrice, 
+                        data.discountedPercentage,
+                        data.isDiscounted,
+                        current->count
+                    );
+
+                    if (filteredHead == nullptr) {
+                        filteredHead = newNode;
+                        filteredTail = newNode;
+                    }
+
+                    else {
+                        filteredTail->next = newNode;
+                        newNode->prev = filteredTail;
+                        filteredTail = newNode;
+                    }
+                }
+                current = current->next;
+            }
+            std::string filteredHighest = "N/A";
+            if (filteredHead != nullptr) {
+                CafeNode fTail = tail(filteredHead);
+                quickSort(filteredHead, filteredHead, fTail, SortField::QUANTITY, false);
+                filteredHighest = filteredHead->salesData.menuItem;
+            }
+
+            clearScreen();
+
+            std::cout << "======================================================================\n";
+            std::cout << "Highest Selling Item : " << filteredHighest << "\n";
+            std::cout << "Total Revenue        : ₱" << std::fixed << std::setprecision(2) << filteredRevenue << "\n";
+            std::cout << "Total Units Sold     : " << filteredUnits << "\n";
+            std::cout << "======================================================================\n";
+            std::cout << "Options: [S]earch  [F]ilter  [B]ack to Summary  [E]xit\n";
+            std::cout << "Enter choice: ";
+
+            std::getline(std::cin >> std::ws, choice);
+            if (choice[0] == 'S' || choice[0] == 's') {
+                printSearchPurchase(head, skipList);
+            } else if (choice[0] == 'F' || choice[0] == 'f') {
+                printFilteredPurchase(head);
+            } else if (choice[0] == 'E' || choice[0] == 'e') {
+                // Free filtered list memory before exit
+                while (filteredHead != nullptr) {
+                    CafeNode temp = filteredHead;
+                    filteredHead = filteredHead->next;
+                    delete temp;
+                }
+                break;
+                
+            }
+            while (filteredHead != nullptr) {
+                CafeNode temp = filteredHead;
+                filteredHead = filteredHead->next;
+                delete temp;
+            }
+        }
+    } while(choice[0] != 'E' && choice[0] != 'e');
+} 

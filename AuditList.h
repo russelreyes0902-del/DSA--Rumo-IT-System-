@@ -40,3 +40,5 @@ void printPaginatedPurchases(CafeNode &head, const std::string& title, int maxRe
 void printRecentPurchase(CafeNode &head);
 
 void printAllPurchases(CafeNode &head, const std::string& title = "ALL PURCHASES");
+
+void printSummaryStatistics(CafeNode &head);
