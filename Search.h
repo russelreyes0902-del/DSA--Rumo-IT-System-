@@ -2,8 +2,6 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <cctype>
-#include <cstdlib>
 #include "Node.h"
 #include "Sort.h"
 #include "AuditList.h"
@@ -48,7 +46,9 @@ public:
 
     CafeNode searchExact(const std::string& query);
     void searchSubString(CafeNode head, const std::string& query, CafeNode& searchHead, int& matchCount);
+        CafeNode searchAllExact(const std::string& query, int& matchCount);
     void freeSearchResults(CafeNode searchHead);
 };
 
 void printSearchPurchase(CafeNode mainHead, MenuSkip& skipList);
+

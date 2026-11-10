@@ -1,4 +1,5 @@
 #include "Search.h"
+#include "Sort.h"
 #include <iomanip>
 
 //Random level generator for Skip List
@@ -106,12 +107,21 @@ void MenuSkip::searchSubString(CafeNode head, const std::string& query, CafeNode
         std::string lowerItem = toLower(currentNode->salesData.menuItem);
         if (lowerItem.find(lowerQuery) != std::string::npos) {
             CafeNode newSearchNode = new Node(
-                currentNode->salesData.menuItem, currentNode->salesData.tempOfDrink, currentNode->salesData.sizeOfItem,
-                currentNode->salesData.typeOfDiscount, currentNode->salesData.modeOfPayment, currentNode->salesData.date,
-                currentNode->salesData.totalPrice, currentNode->salesData.unitPrice, currentNode->salesData.quantity,
-                currentNode->salesData.referenceID, currentNode->salesData.transactionID,
-                currentNode->salesData.discountedPrice, currentNode->salesData.discountedPercentage,
-                currentNode->salesData.isDiscounted, matchCount + 1
+                currentNode->salesData.menuItem, 
+                currentNode->salesData.tempOfDrink, 
+                currentNode->salesData.sizeOfItem,
+                currentNode->salesData.typeOfDiscount, 
+                currentNode->salesData.modeOfPayment, 
+                currentNode->salesData.date,
+                currentNode->salesData.totalPrice, 
+                currentNode->salesData.unitPrice, 
+                currentNode->salesData.quantity,
+                currentNode->salesData.referenceID, 
+                currentNode->salesData.transactionID,
+                currentNode->salesData.discountedPrice, 
+                currentNode->salesData.discountedPercentage,
+                currentNode->salesData.isDiscounted, 
+                matchCount + 1
             );
 
             if (searchHead == nullptr) {
@@ -125,6 +135,63 @@ void MenuSkip::searchSubString(CafeNode head, const std::string& query, CafeNode
         }
         currentNode = currentNode->next;
     }
+}
+
+CafeNode MenuSkip::searchAllExact(
+    const std::string& query,
+    int& matchCount) {
+
+    if (query.empty()) return nullptr;
+    
+    SkipNode* currentNode = header;
+    std::string lowerQuery = toLower(query);
+
+    for (int i = currentLevel; i >= 0; i--) {
+        while (currentNode->forward[i] != nullptr && toLower(currentNode->forward[i]->key) < lowerQuery) {
+                currentNode = currentNode->forward[i];
+            }
+    }
+
+    currentNode = currentNode->forward[0];
+
+    CafeNode resultHead = nullptr;
+    CafeNode resultTail = nullptr;
+
+    while (currentNode != nullptr && toLower(currentNode->key) == lowerQuery) {
+        SalesData data = currentNode->targetNode->salesData;
+        CafeNode newNode = new Node(
+            data.menuItem, 
+            data.tempOfDrink, 
+            data.sizeOfItem,
+            data.typeOfDiscount, 
+            data.modeOfPayment, 
+            data.date,
+            data.totalPrice, 
+            data.unitPrice, 
+            data.quantity,
+            data.referenceID, 
+            data.transactionID,
+            data.discountedPrice, 
+            data.discountedPercentage,
+            data.isDiscounted, 
+            matchCount + 1            
+        );
+
+        if (resultHead == nullptr) {
+            resultHead = newNode;
+            resultTail = newNode;
+        }
+        else {
+            resultTail->next = newNode;
+            newNode->prev = resultTail;
+            resultTail = newNode;
+        }
+
+        matchCount++;
+        currentNode = currentNode->forward[0];
+    }
+
+    return resultHead;
 }
 
 void MenuSkip::freeSearchResults(CafeNode searchHead) {
@@ -142,13 +209,16 @@ void printSearchPurchase(CafeNode mainHead, MenuSkip& skipList) {
     std::cout << "                      RUMO-IT AUDIT SYSTEM - SEARCH                   \n";
     std::cout << "======================================================================\n";
     std::cout << "Enter Search Query (Menu Item): ";
-    std::cin.ignore();
-    std::getline(std::cin, searchQuery);
+    std::getline(std::cin >> std::ws, searchQuery);
 
     CafeNode searchHead = nullptr;
     int matchCount = 0;
 
-    skipList.searchSubString(mainHead, searchQuery, searchHead, matchCount);
+    searchHead = skipList.searchAllExact(searchQuery, matchCount);
+
+    if (matchCount == 0) {
+        skipList.searchSubString(mainHead, searchQuery, searchHead, matchCount);
+    }
 
     if (matchCount == 0) {
         std::cout << "\nNo transactions matching \"" << searchQuery << "\".\n";
@@ -156,6 +226,8 @@ void printSearchPurchase(CafeNode mainHead, MenuSkip& skipList) {
         std::cin.get();
         return;
     }
+
+    promptAndSort(searchHead);
 
     int pageSize = 10;
     int currentPage = 1;
@@ -170,41 +242,55 @@ void printSearchPurchase(CafeNode mainHead, MenuSkip& skipList) {
             current = current->next;
         }
 
-        std::cout << "\n====================================================================================================================================================\n";
+        std::cout << "\n================================================================================================================================\n";
         std::cout << "                                                    RUMO-IT AUDIT SYSTEM\n";
-        std::cout << "====================================================================================================================================================\n";
-        std::cout << "  Search: \"" << searchQuery << "\"                                                        [" << matchCount << " Matches Found]\n";
-        std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------\n";
-        std::cout << "Menu Item       | Size   | Temp | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
-        std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------\n";
+        std::cout << "================================================================================================================================\n";
+        std::cout << "  Search: \"" << searchQuery << "\"                                                              [" << matchCount << " Matches Found]\n";
+        std::cout << "--------------------------------------------------------------------------------------------------------------------------------\n";
+        std::cout << "Date       | Menu Item                    | Size   | Temp | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
+        std::cout << "--------------------------------------------------------------------------------------------------------------------------------\n";
 
         int printedCount = 0;
         int startRecord = skipCount + 1;
 
         while (current != nullptr && printedCount < pageSize) {
+            std::string dateDisplay = current->salesData.date;
+            if (dateDisplay == "") {
+                dateDisplay = "-";
+            }
+
+            // Full menu item name (no truncation)
             std::string itemDisplay = current->salesData.menuItem;
-            if (itemDisplay.length() > 15) itemDisplay = itemDisplay.substr(0, 12) + "...";
 
             std::string sizeDisplay = current->salesData.sizeOfItem;
-            if (sizeDisplay == "" || sizeDisplay == "None" || sizeDisplay == "N/A") sizeDisplay = "-";
-            if (sizeDisplay.length() > 6) sizeDisplay = sizeDisplay.substr(0, 5) + ".";
+            if (sizeDisplay == "" || sizeDisplay == "None" || sizeDisplay == "N/A") {
+                sizeDisplay = "-";
+            }
+            if (sizeDisplay.length() > 6) {
+                sizeDisplay = sizeDisplay.substr(0, 5) + ".";
+            }
 
             std::string tempDisplay = current->salesData.tempOfDrink;
-            if (tempDisplay == "" || tempDisplay == "None" || tempDisplay == "N/A") tempDisplay = "-";
-            if (tempDisplay.length() > 4) tempDisplay = tempDisplay.substr(0, 4);
+            if (tempDisplay == "" || tempDisplay == "None" || tempDisplay == "N/A") {
+                tempDisplay = "-";
+            }
+            if (tempDisplay.length() > 4) {
+                tempDisplay = tempDisplay.substr(0, 4);
+            }
 
-            std::cout << std::left << std::setw(15) << itemDisplay << " | "
+            std::cout << std::left << std::setw(10) << dateDisplay << " | "
+                      << std::left << std::setw(28) << itemDisplay << " | "
                       << std::left << std::setw(6)  << sizeDisplay << " | "
                       << std::left << std::setw(4)  << tempDisplay << " | "
-                      << std::right << std::setw(3) << current->salesData.quantity << " | $"
+                      << std::right << std::setw(3) << current->salesData.quantity << " | ₱"
                       << std::fixed << std::setprecision(2)
-                      << std::setw(8) << current->salesData.unitPrice << " | $"
+                      << std::setw(8) << current->salesData.unitPrice << " | ₱"
                       << std::setw(9) << current->salesData.totalPrice << " | "
                       << std::left << std::setw(12) << current->salesData.modeOfPayment;
 
             if (current->salesData.isDiscounted) {
                 std::cout << " | "
-                          << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | $"
+                          << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | ₱"
                           << std::setw(9) << current->salesData.discountedPrice;
             } else {
                 std::cout << " | "
@@ -233,8 +319,13 @@ void printSearchPurchase(CafeNode mainHead, MenuSkip& skipList) {
         else if (choice == 'G' || choice == 'g') {
             int targetPage;
             std::cout << "Enter page number (1-" << totalPages << "): ";
-            std::cin >> targetPage;
-            if (targetPage >= 1 && targetPage <= totalPages) currentPage = targetPage;
+            if (!(std::cin >> targetPage)) {
+                std::cin.clear();
+                std::cin.ignore(10000, '\n');
+                std::cout << "Invalid input! Must be a number. Press Enter...";
+                std::cin.get();
+            } 
+            else if (targetPage >= 1 && targetPage <= totalPages) currentPage = targetPage;
         }
     } while (choice != 'C' && choice != 'c' && choice != 'E' && choice != 'e');
 
