@@ -98,18 +98,18 @@ void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords)
     CafeNode newNode = new Node(menuItem, tempOfDrink, sizeOfItem, typeOfDiscount, modeOfPayment, date, totalPrice, unitPrice, quantity, referenceID, transactionID, discountedPrice, discountedPercentage, isDiscounted, recordCount + 1);
 
     if (head == nullptr) {
-    head = newNode;
-} 
+        head = newNode;
+    } 
 
-else {
-    CafeNode current = head;
-    while (current->next != nullptr){
-        current = current->next;
-    }
-    current->next = newNode;
-    newNode->prev = current;
-}
-recordCount++;
+    else {
+        CafeNode current = head;
+        while (current->next != nullptr){
+            current = current->next;
+        }
+        current->next = newNode;
+        newNode->prev = current;
+        }
+        recordCount++;
     }
 
     iFile.close();

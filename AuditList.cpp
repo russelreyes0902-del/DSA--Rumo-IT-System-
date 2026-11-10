@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <iostream>
 #include <cstdlib> 
+#include <string>
+#include <limits>
 
 void clearScreen() {
 #ifdef _WIN32
@@ -236,7 +238,7 @@ void printRecentPurchase(CafeNode &head) {
         int pageSize = 10;
         int totalNodes = getTotalTransactions(head);
         int currentPage = 1;
-        char choice;
+        std::string choice;
         
         int totalPages = (totalNodes + pageSize - 1)/10;
         do {
@@ -316,26 +318,51 @@ void printRecentPurchase(CafeNode &head) {
             if (currentPage > 1)          std::cout << "[P]revious  ";
             std::cout << "[G]o to Page  [E]xit\n";
             std::cout << "Enter choice: ";
-            std::cin >> choice;
-
-            if ((choice == 'N' || choice == 'n') && currentPage < totalPages) {
-                currentPage++;
-            } 
-            else if ((choice == 'P' || choice == 'p') && currentPage > 1) {
-                currentPage--;
-            } 
-            else if (choice == 'G' || choice == 'g') {
-                int targetPage;
-                std::cout << "Enter page number (1-" << totalPages << "): ";
-                std::cin >> targetPage;
-                if (targetPage >= 1 && targetPage <= totalPages) {
-                    currentPage = targetPage;
-                } 
-                else {
-                    std::cout << "Invalid page number!\n";
-                    std::cin.ignore();
-                    std::cin.get();
-                }
+            std::getline(std::cin >> std::ws, choice);
+            char answer = choice[0];
+            if (choice.length() != 1) {
+                std::cout << "Invalid input! Enter only one character at a time" << std::endl;
+                std::cin.get();
             }
-        } while(choice != 'E' && choice != 'e');
+            else {
+                if ((answer == 'N' || answer == 'n') && currentPage < totalPages) {
+                    currentPage++;
+                } 
+                else if ((answer == 'P' || answer == 'p') && currentPage > 1) {
+                    currentPage--;
+                } 
+                else if (answer == 'G' || answer == 'g') {
+                    int targetPage;
+                    std::cout << "Enter page number (1-" << totalPages << "): ";
+                    
+                    // Check if the input is a valid integer
+                    if (std::cin >> targetPage) {
+                        if (targetPage >= 1 && targetPage <= totalPages) {
+                            currentPage = targetPage;
+                        } else {
+                            std::cout << "Invalid page number! Out of range.\n";
+                            std::cout << "Press Enter to continue...";
+                            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                            std::cin.get();
+                        }
+                        // Clear the leftover newline from std::cin >> targetPage
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    } else {
+                        // Clear error flags caused by letters/symbols
+                        std::cin.clear();
+                        // Discard all invalid characters remaining in the buffer
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        
+                        std::cout << "Invalid entry! Must be a number. Press Enter to continue...";
+                        std::cin.get();
+                    }
+                }
+                else {
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << "Invalid entry! Must be a number. Press Enter to continue...";
+                    std::cin.get();
+                }   
+            }
+        } while(choice[0] != 'E' && choice[0] != 'e');
    }
