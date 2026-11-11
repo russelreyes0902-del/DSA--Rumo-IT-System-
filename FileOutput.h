@@ -22,4 +22,3 @@ PendingChanges getPendingChangeAt(int index);
 void addPendingChange(const std::string& type, const std::string& detail);
 void removePendingChangeAt(int index);
 void clearPendingChanges();
-

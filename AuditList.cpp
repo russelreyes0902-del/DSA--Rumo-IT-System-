@@ -517,23 +517,22 @@ void printSummaryStatistics(CafeNode &head) {
 
                     SalesData data = current->salesData;
                     CafeNode newNode = new Node(
-                        data.menuItem, 
-                        data.tempOfDrink, 
+                        data.menuItem,
+                        data.tempOfDrink,
                         data.sizeOfItem,
-                        data.typeOfDiscount, 
-                        data.modeOfPayment, 
+                        data.typeOfDiscount,
+                        data.modeOfPayment,
                         data.date,
-                        data.totalPrice, 
-                        data.unitPrice, 
+                        data.totalPrice,
+                        data.unitPrice,
                         data.quantity,
-                        data.referenceID, 
+                        data.referenceID,
                         data.transactionID,
-                        data.discountedPrice, 
+                        data.discountedPrice,
                         data.discountedPercentage,
                         data.isDiscounted,
                         current->count
                     );
-
                     if (filteredHead == nullptr) {
                         filteredHead = newNode;
                         filteredTail = newNode;
@@ -1079,3 +1078,4 @@ void auditMenuHandler(CafeNode& head, const std::string& filename) {
             std::cin.get();
         }
     }
+}

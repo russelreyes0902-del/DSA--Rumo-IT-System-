@@ -65,24 +65,23 @@ void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords)
 
         std:: istringstream ss(line); //string to break down the line 
         std:: string date, menuItemID, menuCategory, menuItem, tempOfDrink, sizeOfItem, quantityStr, modeOfPayment;
-        std:: string unitPriceStr, totalPriceStr, typeOfDiscount, discountedPriceStr, discountedPercentageStr, referenceIDStr, transactionIDStr;
+        std:: string unitPriceStr, totalPriceStr, typeOfDiscount, discountedPriceStr, discountedPercentageStr, referenceIDStr, transactionIDStr, isDiscountedStr;
         
         //must match audit data csv
-        std::getline(ss, date, ',');
-        std::getline(ss, menuItemID, ',');
-        std::getline(ss, menuCategory, ',');
         std::getline(ss, menuItem, ',');
         std::getline(ss, tempOfDrink, ',');
         std::getline(ss, sizeOfItem, ',');
-        std::getline(ss, quantityStr, ',');
-        std::getline(ss, modeOfPayment, ',');
-        std::getline(ss, unitPriceStr, ',');
-        std::getline(ss, totalPriceStr, ',');
         std::getline(ss, typeOfDiscount, ',');
-        std::getline(ss, discountedPriceStr, ',');
-        std::getline(ss, discountedPercentageStr, ',');
+        std::getline(ss, modeOfPayment, ',');
+        std::getline(ss, date, ',');
+        std::getline(ss, totalPriceStr, ',');
+        std::getline(ss, unitPriceStr, ',');
+        std::getline(ss, quantityStr, ',');
         std::getline(ss, referenceIDStr, ',');
         std::getline(ss, transactionIDStr, ',');
+        std::getline(ss, discountedPriceStr, ',');
+        std::getline(ss, discountedPercentageStr, ',');
+        std::getline(ss, isDiscountedStr, ','); 
 
         tempOfDrink = cleanMissingValue(tempOfDrink, "N/A");
         sizeOfItem = cleanMissingValue(sizeOfItem, "N/A");
@@ -198,4 +197,3 @@ void printMenu(const std::string &filename) {
     std::cout << "Press Enter to return to main menu...";
     std::cin.get();
 }
-
