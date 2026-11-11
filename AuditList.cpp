@@ -15,9 +15,9 @@
 
 void clearScreen() {
 #ifdef _WIN32
-    system("cls");   // Windows
+    system("cls");   
 #else
-    system("clear"); // Linux / macOS
+    system("clear"); 
 #endif
 }
 

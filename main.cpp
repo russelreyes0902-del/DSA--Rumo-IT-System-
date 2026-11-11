@@ -80,7 +80,6 @@ int main () {
 
     } while (choice != 7);
 
-    // Optional: Clean up main linked list memory on exit
     while (auditHead != nullptr) {
         CafeNode temp = auditHead;
         auditHead = auditHead->next;
