@@ -2,11 +2,15 @@
 #include "Search.h"
 #include "Sort.h"
 #include "AuditList.h"
+#include "FileOutput.h"
 #include <iomanip>
 #include <iostream>
 #include <cstdlib> 
 #include <string>
 #include <limits>
+#include <fstream>
+#include <sstream>
+#include <cctype>
 
 void clearScreen() {
 #ifdef _WIN32
@@ -583,3 +587,495 @@ void printSummaryStatistics(CafeNode &head) {
         }
     } while(choice[0] != 'E' && choice[0] != 'e');
 } 
+
+void clearInputBuffer() {
+    std::cin.clear();
+    std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+}
+
+std::string validateAndFormatMenuItem(const std::string& input) {
+    if (input.empty()) return "";
+
+    std::string lowerInput = input;
+    for (char &c : lowerInput) c = std::tolower(c);
+
+    std::ifstream menuFile("menu_data.csv");
+    if (!menuFile.is_open()) return input;
+
+    std::string line;
+    std::getline(menuFile, line); 
+
+    while (std::getline(menuFile, line)) {
+        if (line.empty()) continue;
+
+        std::stringstream ss(line);
+        std::string canonicalItemName;
+        std::getline(ss, canonicalItemName, ',');
+
+        if (!canonicalItemName.empty() && canonicalItemName.front() == '"') canonicalItemName.erase(0, 1);
+        if (!canonicalItemName.empty() && canonicalItemName.back() == '"') canonicalItemName.pop_back();
+        if (!canonicalItemName.empty() && canonicalItemName.back() == '\r') canonicalItemName.pop_back();
+
+        std::string lowerMenu = canonicalItemName;
+        for (char &c : lowerMenu) c = std::tolower(c);
+
+        if (lowerMenu == lowerInput || lowerMenu.find(lowerInput) != std::string::npos) {
+            menuFile.close();
+            return canonicalItemName;
+        }
+    }
+
+    menuFile.close();
+    return "";
+}
+
+SalesData editSalesData(const SalesData& currentData) {
+    SalesData data = currentData;
+    std::cout << "\n======================================================================\n";
+    std::cout << "                         EDIT RECORD DETAILS                          \n";
+    std::cout << "======================================================================\n";
+
+    while (true) {
+        std::cout << "Menu Item Name [" << data.menuItem << "]: ";
+        std::string input;
+        std::getline(std::cin, input);
+        if (input.empty()) break; 
+
+        std::string matchedName = validateAndFormatMenuItem(input);
+        if (!matchedName.empty()) {
+            data.menuItem = matchedName;
+            break;
+        }
+        std::cout << input << "' is not a valid menu item in the menu. Try again.\n";
+    }
+
+    while (true) {
+        std::cout << "Temperature (Hot/Iced/NA) [" << data.tempOfDrink << "]: ";
+        std::string input;
+        std::getline(std::cin, input);
+        if (input.empty()) break;
+
+        std::string lower = input;
+        for (char &c : lower) c = std::tolower(c);
+
+        if (lower == "hot") { data.tempOfDrink = "Hot"; break; }
+        if (lower == "iced") { data.tempOfDrink = "Iced"; break; }
+        if (lower == "n/a" || lower == "na") { data.tempOfDrink = "N/A"; break; }
+
+        std::cout << "Invalid temperature. Enter 'Hot', 'Iced', or 'N/A'.\n";
+    }
+
+    while (true) {
+        std::cout << "Size (Regular/Large) [" << data.sizeOfItem << "]: ";
+        std::string input;
+        std::getline(std::cin, input);
+        if (input.empty()) break;
+
+        std::string lower = input;
+        for (char &c : lower) c = std::tolower(c);
+
+        if (lower == "regular" || lower == "reg") { data.sizeOfItem = "Regular"; break; }
+        if (lower == "large") { data.sizeOfItem = "Large"; break; }
+
+        std::cout << "Invalid size. Enter 'Regular' or 'Large'.\n";
+    }
+
+    while (true) {
+        std::cout << "Type of Discount (Senior/PWD/None) [" << data.typeOfDiscount << "]: ";
+        std::string input;
+        std::getline(std::cin, input);
+        if (input.empty()) break;
+
+        std::string lower = input;
+        for (char &c : lower) c = std::tolower(c);
+
+        if (lower == "senior") { data.typeOfDiscount = "Senior"; break; }
+        if (lower == "pwd") { data.typeOfDiscount = "PWD"; break; }
+        if (lower == "none") { data.typeOfDiscount = "None"; break; }
+
+        std::cout << "Invalid discount type. Enter Senior, PWD, or None.\n";
+    }
+
+    std::cout << "Mode of Payment [" << data.modeOfPayment << "]: ";
+    std::string payInput;
+    std::getline(std::cin, payInput);
+    if (!payInput.empty()) data.modeOfPayment = payInput;
+
+    while (true) {
+        std::cout << "Date (YYYY-MM-DD) [" << data.date << "]: ";
+        std::string dateInput;
+        std::getline(std::cin, dateInput);
+        if (dateInput.empty()) break;
+
+        if (dateInput.length() == 10 && dateInput[4] == '-' && dateInput[7] == '-') {
+            data.date = dateInput;
+            break;
+        }
+        std::cout << "Invalid date format. Must be YYYY-MM-DD.\n";
+    }
+
+    while (true) {
+        std::cout << "Unit Price [" << data.unitPrice << "]: ";
+        std::string inputStr;
+        std::getline(std::cin, inputStr);
+        if (inputStr.empty()) break; 
+
+        try {
+            size_t pos = 0;
+            double val = std::stod(inputStr, &pos);
+            if (pos == inputStr.length() && val >= 0.0) {
+                data.unitPrice = val;
+                break;
+            }
+            throw std::invalid_argument("Invalid numeric trailing characters");
+        } catch (...) {
+            std::cout << "Invalid price. Please enter a valid non-negative number.\n";
+        }
+    }
+
+    while (true) {
+        std::cout << "Quantity [" << data.quantity << "]: ";
+        std::string inputStr;
+        std::getline(std::cin, inputStr);
+        if (inputStr.empty()) break; 
+
+        try {
+            size_t pos = 0;
+            int val = std::stoi(inputStr, &pos);
+            if (pos == inputStr.length() && val > 0) {
+                data.quantity = val;
+                break;
+            }
+            throw std::invalid_argument("Invalid integer format");
+        } catch (...) {
+            std::cout << "Invalid quantity. Please enter a positive integer.\n";
+        }
+    }
+
+    data.totalPrice = data.unitPrice * data.quantity;
+
+    if (data.typeOfDiscount == "Senior" || data.typeOfDiscount == "PWD") {
+        data.isDiscounted = true;
+        data.discountedPercentage = 20.0;
+        data.discountedPrice = data.totalPrice * 0.80;
+    } else {
+        data.isDiscounted = false;
+        data.discountedPercentage = 0.0;
+        data.discountedPrice = 0.0;
+    }
+
+    return data;
+}
+
+SalesData getSalesDataFromUser() {
+    SalesData data;
+    std::cout << "\n======================================================================\n";
+    std::cout << "                        ENTER SALES DATA DETAILS                      \n";
+    std::cout << "======================================================================\n";
+    
+    while (true) {
+        std::cout << "Menu Item Name: ";
+        std::getline(std::cin >> std::ws, data.menuItem);
+        if (!data.menuItem.empty()) {
+            std::string matchedName = validateAndFormatMenuItem(data.menuItem);
+            if (!matchedName.empty()) {
+                data.menuItem = matchedName;
+                break;
+            } else {
+                std::cout << data.menuItem << " is not in menu. Try again.\n";
+                continue;
+            }
+        }
+        std::cout << "Input cannot be blank.\n";
+    }
+
+    while (true) {
+        std::cout << "Temperature (Hot/Iced/NA): ";
+        std::getline(std::cin, data.tempOfDrink);
+        std::string lower = data.tempOfDrink;
+        for (char &c : lower) c = std::tolower(c);
+
+        if (lower == "hot") { data.tempOfDrink = "Hot"; break; }
+        if (lower == "iced") { data.tempOfDrink = "Iced"; break; }
+        if (lower == "n/a" || lower == "na") { data.tempOfDrink = "N/A"; break; }
+
+        std::cout << "Invalid option. Enter 'Hot', 'Iced', or 'N/A'.\n";
+    }
+
+    while (true) {
+        std::cout << "Size (Regular/Large): ";
+        std::getline(std::cin, data.sizeOfItem);
+        std::string lower = data.sizeOfItem;
+        for (char &c : lower) c = std::tolower(c);
+
+        if (lower == "regular" || lower == "reg") { data.sizeOfItem = "Regular"; break; }
+        if (lower == "large") { data.sizeOfItem = "Large"; break; }
+
+        std::cout << "Invalid size. Enter 'Regular' or 'Large'.\n";
+    }
+
+    while (true) {
+        std::cout << "Type of Discount (Senior/PWD/None): ";
+        std::getline(std::cin, data.typeOfDiscount);
+        std::string lower = data.typeOfDiscount;
+        for (char &c : lower) c = std::tolower(c);
+
+        if (lower == "senior") { data.typeOfDiscount = "Senior"; break; }
+        if (lower == "pwd") { data.typeOfDiscount = "PWD"; break; }
+        if (lower == "none" || lower.empty()) { data.typeOfDiscount = "None"; break; }
+
+        std::cout << "Invalid discount. Enter 'Senior', 'PWD', or 'None'.\n";
+    }
+
+    while (true) {
+        std::cout << "Mode of Payment: ";
+        std::getline(std::cin, data.modeOfPayment);
+        if (!data.modeOfPayment.empty()) break;
+        std::cout << "Input cannot be blank.\n";
+    }
+
+    while (true) {
+        std::cout << "Date (YYYY-MM-DD): ";
+        std::getline(std::cin, data.date);
+        if (data.date.length() == 10 && data.date[4] == '-' && data.date[7] == '-') {
+            break;
+        }
+        std::cout << "Invalid format. Please enter as YYYY-MM-DD.\n";
+    }
+
+    while (true) {
+        std::cout << "Unit Price: ";
+        std::string inputStr;
+        std::getline(std::cin, inputStr);
+        try {
+            size_t pos = 0;
+            double val = std::stod(inputStr, &pos);
+            if (pos == inputStr.length() && val >= 0.0) {
+                data.unitPrice = val;
+                break;
+            }
+            throw std::invalid_argument("Invalid double format");
+        } catch (...) {
+            std::cout << "Invalid price. Enter a valid non-negative number.\n";
+        }
+    }
+
+    while (true) {
+        std::cout << "Quantity: ";
+        std::string inputStr;
+        std::getline(std::cin, inputStr);
+        try {
+            size_t pos = 0;
+            int val = std::stoi(inputStr, &pos);
+            if (pos == inputStr.length() && val > 0) {
+                data.quantity = val;
+                break;
+            }
+            throw std::invalid_argument("Invalid quantity format");
+        } catch (...) {
+            std::cout << "Invalid quantity. Enter a positive integer.\n";
+        }
+    }
+
+    data.totalPrice = data.unitPrice * data.quantity;
+
+    std::string lowerPayment = data.modeOfPayment;
+    for (char &c : lowerPayment) c = std::tolower(c);
+
+    if (lowerPayment == "cash") {
+        data.referenceID = 0;
+    } else {
+        while (true) {
+            std::cout << "Enter Reference ID: ";
+            std::string inputStr;
+            std::getline(std::cin, inputStr);
+            try {
+                size_t pos = 0;
+                long long val = std::stoll(inputStr, &pos);
+                if (pos == inputStr.length() && val >= 0) {
+                    data.referenceID = val;
+                    break;
+                }
+                throw std::invalid_argument("Invalid reference ID");
+            } catch (...) {
+                std::cout << "Invalid Reference ID. Enter a positive number.\n";
+            }
+        }
+    }
+
+    while (true) {
+        std::cout << "Transaction ID: ";
+        std::string inputStr;
+        std::getline(std::cin, inputStr);
+        try {
+            size_t pos = 0;
+            int val = std::stoi(inputStr, &pos);
+            if (pos == inputStr.length() && val >= 0) {
+                data.transactionID = val;
+                break;
+            }
+            throw std::invalid_argument("Invalid transaction ID");
+        } catch (...) {
+            std::cout << "Invalid Transaction ID. Enter a positive integer.\n";
+        }
+    }
+
+    if (data.typeOfDiscount == "Senior" || data.typeOfDiscount == "PWD") {
+        data.isDiscounted = true;
+        data.discountedPercentage = 20.0;
+        data.discountedPrice = data.totalPrice * 0.80;
+    } else {
+        data.isDiscounted = false;
+        data.discountedPercentage = 0.0;
+        data.discountedPrice = 0.0;
+    }
+
+    return data;
+}
+
+void viewUnsavedChanges(CafeNode &head, const std::string& filename) {
+    clearScreen();
+    std::cout << "\n======================================================================\n";
+    std::cout << "                        UNSAVED PENDING CHANGES                       \n";
+    std::cout << "======================================================================\n";
+
+    int count = getPendingCount();
+    if (count == 0) {
+        std::cout << " No pending changes to save.\n";
+        std::cout << "======================================================================\n";
+        std::cout << "Press Enter to return...";
+        std::cin.get();
+        return;
+    }
+
+    for (int i = 0; i < count; ++i) {
+        PendingChanges change = getPendingChangeAt(i);
+        std::cout << " [" << (i + 1) << "] " << change.details << "\n";
+    }
+
+    std::cout << "======================================================================\n";
+    std::cout << "Options: [S]ave changes to file | [C]lear pending | [B]ack\n";
+    std::cout << "Enter choice: ";
+    std::string choice;
+    std::getline(std::cin >> std::ws, choice);
+
+    if (!choice.empty() && (choice[0] == 'S' || choice[0] == 's')) {
+        saveChangesToFile(head, filename);
+        clearPendingChanges();
+        std::cout << "Press Enter to return...";
+        std::cin.get();
+    } else if (!choice.empty() && (choice[0] == 'C' || choice[0] == 'c')) {
+        clearPendingChanges();
+        std::cout << "Pending changes cleared without saving.\n";
+        std::cout << "Press Enter to return...";
+        std::cin.get();
+    }
+}
+
+void auditMenuHandler(CafeNode& head, const std::string& filename) {
+    int choice = 0;
+    while (choice != 4) {
+        clearScreen();
+        std::cout << "\n======================================================================\n";
+        std::cout << "                         INVENTORY OPERATIONS                         \n";
+        std::cout << "======================================================================\n";
+        std::cout << "[1] Insert New Record\n";
+        std::cout << "[2] Update Existing Record\n";
+        std::cout << "[3] Delete Record\n";
+        std::cout << "[4] Return to Main Menu\n";
+        std::cout << "----------------------------------------------------------------------\n";
+        std::cout << "Enter choice (1-4): ";
+
+        if (!(std::cin >> choice) || choice < 1 || choice > 4) {
+            std::cout << "Invalid option. Enter a number between 1 and 4.\n";
+            clearInputBuffer();
+            std::cout << "Press Enter to continue...";
+            std::cin.get();
+            continue;
+        }
+
+        std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+
+        if (choice == 1) {
+            SalesData newData = getSalesDataFromUser();
+            int total = getTotalTransactions(head);
+            int pos = 1;
+            while (true) {
+                std::cout << "Enter position to insert (1 to " << (total + 1) << "): ";
+                if (std::cin >> pos && pos >= 1 && pos <= total + 1) {
+                    std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+                    break;
+                }
+                std::cout << "Invalid position!\n";
+                clearInputBuffer();
+            }
+            insertNode(head, newData, pos);
+            std::cout << "Press Enter to continue...";
+            std::cin.get();
+        } 
+        else if (choice == 2) {
+            int total = getTotalTransactions(head);
+            if (total == 0) {
+                std::cout << "Inventory is empty!\n";
+            } else {
+                int pos = 1;
+                while (true) {
+                    std::cout << "Enter position to edit (1 to " << total << "): ";
+                    if (std::cin >> pos && pos >= 1 && pos <= total) {
+                        std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+                        break;
+                    }
+                    std::cout << "Invalid position!\n";
+                    clearInputBuffer();
+                }
+                CafeNode current = head;
+                for (int i = 1; i < pos && current != nullptr; ++i) {
+                    current = current->next;
+                }
+                if (current != nullptr) {
+                    SalesData updatedData = editSalesData(current->salesData);
+                    updateNode(head, updatedData, pos);
+                }
+            }
+            std::cout << "Press Enter to continue...";
+            std::cin.get();
+        } 
+        else if (choice == 3) {
+            int total = getTotalTransactions(head);
+            if (total == 0) {
+                std::cout << "Inventory is empty!\n";
+            } else {
+                int pos = 1;
+                while (true) {
+                    std::cout << "Enter position to delete (1 to " << total << "): ";
+                    if (std::cin >> pos && pos >= 1 && pos <= total) {
+                        std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+                        break;
+                    }
+                    std::cout << "Invalid position!\n";
+                    clearInputBuffer();
+                }
+                CafeNode current = head;
+                for (int i = 1; i < pos && current != nullptr; ++i) {
+                    current = current->next;
+                }
+                if (current != nullptr) {
+                    std::cout << "\n Are you sure you want to delete record " << pos 
+                              << " (" << current->salesData.menuItem << " - " << current->salesData.date << ")? (Y/N): ";
+                    
+                    char confirmChar;
+                    std::cin >> confirmChar;
+                    confirmChar = std::toupper(confirmChar);
+                    std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+
+                    if (confirmChar == 'Y' && confirmChar == 'y') {
+                        deleteNode(head, pos);
+                    } else {
+                        std::cout << "\n Deletion cancelled. Record was retained.\n";
+                    }
+                }
+            }
+            std::cout << "Press Enter to continue...";
+            std::cin.get();
+        }
+    }

@@ -3,6 +3,7 @@
 #include "Node.h"
 #include "AuditList.h"
 #include "FileInput.h"
+#include "FileOutput.h"
 #include "Search.h"
 #include "Sort.h"
 
@@ -34,23 +35,20 @@ int main () {
         std::cout << "[2] View All Purchases\n";
         std::cout << "[3] View Recent Purchases\n";
         std::cout << "[4] View Menu\n";
-        std::cout << "[5] Exit Program\n";
+        std::cout << "[5] Inventory Operations\n"; 
+        std::cout << "[6] View Unsaved Changes (" << getPendingCount() << " pending)\n";
+        std::cout << "[7] Exit Program\n";
         std::cout << "----------------------------------------------------------------------\n";
-        std::cout << "Enter your choice (1-5): ";
-
-        // Input validation for non-integer characters
+        std::cout << "Enter your choice (1-7): ";
         if (!(std::cin >> choice)) {
-            std::cin.clear(); // Clear error flag
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Skip bad input
-            std::cout << "\nInvalid input! Please enter a number between 1 and 5.\n";
+            std::cin.clear();
+            std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+            std::cout << "\nInvalid input! Please enter a number between 1 and 7.\n";
             std::cout << "Press Enter to continue...";
             std::cin.get();
             continue;
         }
-
-        // Consume the leftover newline character in the input buffer after reading an integer
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
+        std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
         switch (choice) {
             case 1:
                 printSummaryStatistics(auditHead);
@@ -65,6 +63,12 @@ int main () {
                 printMenu("menu_data.csv");
                 break;
             case 5:
+                auditMenuHandler(auditHead, "audit_data.csv");
+                break;
+            case 6:
+                viewUnsavedChanges(auditHead, "audit_data.csv");
+                break;
+            case 7:
                 std::cout << "\nExiting RUMO-IT Audit System. Goodbye!\n";
                 break;
             default:
@@ -74,7 +78,7 @@ int main () {
                 break;
         }
 
-    } while (choice != 5);
+    } while (choice != 7);
 
     // Optional: Clean up main linked list memory on exit
     while (auditHead != nullptr) {

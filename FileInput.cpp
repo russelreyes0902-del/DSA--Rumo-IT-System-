@@ -46,8 +46,6 @@ long long convertToLongLong(const std:: string &str, long long defaultValue = 0)
     }
 }
 
-//feel q ang haba masyado sa itaas 
-
 void loadAuditData(const std:: string &filename, CafeNode &head, int maxRecords) {
     std:: ifstream iFile(filename);
     // iFile.open(filename);
