@@ -18,7 +18,7 @@ int main () {
 
     CafeNode auditHead = nullptr;
     loadMenuData("menu_data.csv");
-    loadAuditData("audit_data.csv", auditHead);
+    loadAuditData("inventory.csv", auditHead);
     
     MenuSkip skipList;
     skipList.buildFromList(auditHead);
@@ -63,7 +63,7 @@ int main () {
                 printMenu("menu_data.csv");
                 break;
             case 5:
-                auditMenuHandler(auditHead, "audit_data.csv");
+                auditMenuHandler(auditHead, "inventory.csv");
                 break;
             case 6:
                 viewUnsavedChanges(auditHead, "audit_data.csv");
