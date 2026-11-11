@@ -70,47 +70,49 @@ bool shouldSwap(
     CafeNode pivot,
     SortField sortBy,
     bool ascending) {
+
     if (sortBy == SortField::COUNT) {
-        if (ascending == true) {
-            return current->count <= pivot->count;
-        }
-        else {
-            return current->count >= pivot->count;
-        }
+        return ascending ? (current->count <= pivot->count)
+                         : (current->count >= pivot->count);
     }
     else if (sortBy == SortField::TOTAL_PRICE) {
-        if (ascending == true) {
-            return current->salesData.totalPrice <= pivot->salesData.totalPrice;
+        if (current->salesData.totalPrice != pivot->salesData.totalPrice) {
+            return ascending ? (current->salesData.totalPrice <= pivot->salesData.totalPrice)
+                             : (current->salesData.totalPrice >= pivot->salesData.totalPrice);
         }
-        else {
-            return current->salesData.totalPrice >= pivot->salesData.totalPrice;
-        }
+        // Tie-breaker: preserve count sequence
+        return ascending ? (current->count <= pivot->count)
+                         : (current->count >= pivot->count);
     }
     else if (sortBy == SortField::DATE) {
         int currDate = parseDate(current->salesData.date);
         int pivDate = parseDate(pivot->salesData.date);
-        if (ascending == true) return currDate <= pivDate;
-        else return currDate >= pivDate;
+        if (currDate != pivDate) {
+            return ascending ? (currDate <= pivDate) : (currDate >= pivDate);
+        }
+        // Tie-breaker: preserve count sequence
+        return ascending ? (current->count <= pivot->count)
+                         : (current->count >= pivot->count);
     }
     else if (sortBy == SortField::TRANSACTION_ID) {
-        if (ascending == true) {
-            return current->salesData.transactionID <= pivot->salesData.transactionID;
-        } 
-        else {
-            return current->salesData.transactionID >= pivot->salesData.transactionID;
+        if (current->salesData.transactionID != pivot->salesData.transactionID) {
+            return ascending ? (current->salesData.transactionID <= pivot->salesData.transactionID)
+                             : (current->salesData.transactionID >= pivot->salesData.transactionID);
         }
+        return ascending ? (current->count <= pivot->count)
+                         : (current->count >= pivot->count);
     }
     else if (sortBy == SortField::QUANTITY) {
-        if (ascending == true) {
-            return current->salesData.quantity <= pivot->salesData.quantity;
+        if (current->salesData.quantity != pivot->salesData.quantity) {
+            return ascending ? (current->salesData.quantity <= pivot->salesData.quantity)
+                             : (current->salesData.quantity >= pivot->salesData.quantity);
         }
-        else {
-            return current->salesData.quantity >= pivot->salesData.quantity;
-        }
+        return ascending ? (current->count <= pivot->count)
+                         : (current->count >= pivot->count);
     }
+
     return false;
 }
-
 CafeNode partition(
     CafeNode &head, 
     CafeNode low, 
