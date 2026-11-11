@@ -66,7 +66,7 @@ int main () {
                 auditMenuHandler(auditHead, "inventory.csv");
                 break;
             case 6:
-                viewUnsavedChanges(auditHead, "audit_data.csv");
+                viewUnsavedChanges(auditHead, "inventory.csv");
                 break;
             case 7:
                 std::cout << "\nExiting RUMO-IT Audit System. Goodbye!\n";
