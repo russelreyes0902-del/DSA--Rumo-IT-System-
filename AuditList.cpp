@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <algorithm>
 
 void clearScreen() {
 #ifdef _WIN32
@@ -596,27 +597,38 @@ std::string validateAndFormatMenuItem(const std::string& input) {
     if (input.empty()) return "";
 
     std::string lowerInput = input;
-    for (char &c : lowerInput) c = std::tolower(c);
+    std::transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
 
     std::ifstream menuFile("menu_data.csv");
     if (!menuFile.is_open()) return input;
 
     std::string line;
-    std::getline(menuFile, line); 
+    std::getline(menuFile, line); // Skip header
 
     while (std::getline(menuFile, line)) {
         if (line.empty()) continue;
 
         std::stringstream ss(line);
-        std::string canonicalItemName;
-        std::getline(ss, canonicalItemName, ',');
+        std::string token;
+        std::string canonicalItemName = "";
+        int columnIndex = 0;
 
+        // Parse each column from the beginning of the line
+        while (std::getline(ss, token, ',')) {
+            if (columnIndex == 2) { // Index 2 is 'menuItem' (0: ID, 1: Category, 2: Name)
+                canonicalItemName = token;
+                break;
+            }
+            columnIndex++;
+        }
+
+        // Clean up quotes, carriage returns, and whitespace
         if (!canonicalItemName.empty() && canonicalItemName.front() == '"') canonicalItemName.erase(0, 1);
         if (!canonicalItemName.empty() && canonicalItemName.back() == '"') canonicalItemName.pop_back();
         if (!canonicalItemName.empty() && canonicalItemName.back() == '\r') canonicalItemName.pop_back();
 
         std::string lowerMenu = canonicalItemName;
-        for (char &c : lowerMenu) c = std::tolower(c);
+        std::transform(lowerMenu.begin(), lowerMenu.end(), lowerMenu.begin(), ::tolower);
 
         if (lowerMenu == lowerInput || lowerMenu.find(lowerInput) != std::string::npos) {
             menuFile.close();
@@ -626,6 +638,92 @@ std::string validateAndFormatMenuItem(const std::string& input) {
 
     menuFile.close();
     return "";
+}
+
+bool itemHasTemperatureOption(const std::string& menuItemName) {
+    std::ifstream menuFile("menu_data.csv");
+    if (!menuFile.is_open()) return false;
+
+    std::string line;
+    std::getline(menuFile, line); // Skip header
+
+    std::string lowerInput = menuItemName;
+    std::transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+
+    while (std::getline(menuFile, line)) {
+        if (line.empty()) continue;
+
+        std::stringstream ss(line);
+        std::string token;
+        std::string canonicalItemName = "";
+        std::string tempField = "";
+        int columnIndex = 0;
+
+        while (std::getline(ss, token, ',')) {
+            if (columnIndex == 2) canonicalItemName = token;
+            if (columnIndex == 4) tempField = token; // column 4 is drinkOfTemp
+            columnIndex++;
+        }
+
+        if (!canonicalItemName.empty() && canonicalItemName.front() == '"') canonicalItemName.erase(0, 1);
+        if (!canonicalItemName.empty() && canonicalItemName.back() == '"') canonicalItemName.pop_back();
+        if (!canonicalItemName.empty() && canonicalItemName.back() == '\r') canonicalItemName.pop_back();
+
+        std::string lowerMenu = canonicalItemName;
+        std::transform(lowerMenu.begin(), lowerMenu.end(), lowerMenu.begin(), ::tolower);
+
+        if (lowerMenu == lowerInput) {
+            if (!tempField.empty() && tempField != "N/A" && tempField != "None" && tempField != "\r") {
+                menuFile.close();
+                return true;
+            }
+        }
+    }
+    menuFile.close();
+    return false;
+}
+
+bool itemHasSizeOption(const std::string& menuItemName) {
+    std::ifstream menuFile("menu_data.csv");
+    if (!menuFile.is_open()) return false;
+
+    std::string line;
+    std::getline(menuFile, line); // Skip header
+
+    std::string lowerInput = menuItemName;
+    std::transform(lowerInput.begin(), lowerInput.end(), lowerInput.begin(), ::tolower);
+
+    while (std::getline(menuFile, line)) {
+        if (line.empty()) continue;
+
+        std::stringstream ss(line);
+        std::string token;
+        std::string canonicalItemName = "";
+        std::string sizeField = "";
+        int columnIndex = 0;
+
+        while (std::getline(ss, token, ',')) {
+            if (columnIndex == 2) canonicalItemName = token;
+            if (columnIndex == 5) sizeField = token; // column 5 is sizeOfItem
+            columnIndex++;
+        }
+
+        if (!canonicalItemName.empty() && canonicalItemName.front() == '"') canonicalItemName.erase(0, 1);
+        if (!canonicalItemName.empty() && canonicalItemName.back() == '"') canonicalItemName.pop_back();
+        if (!canonicalItemName.empty() && canonicalItemName.back() == '\r') canonicalItemName.pop_back();
+
+        std::string lowerMenu = canonicalItemName;
+        std::transform(lowerMenu.begin(), lowerMenu.end(), lowerMenu.begin(), ::tolower);
+
+        if (lowerMenu == lowerInput) {
+            if (!sizeField.empty() && sizeField != "N/A" && sizeField != "None" && sizeField != "\r") {
+                menuFile.close();
+                return true;
+            }
+        }
+    }
+    menuFile.close();
+    return false;
 }
 
 SalesData editSalesData(const SalesData& currentData) {
@@ -648,35 +746,45 @@ SalesData editSalesData(const SalesData& currentData) {
         std::cout << input << "' is not a valid menu item in the menu. Try again.\n";
     }
 
-    while (true) {
-        std::cout << "Temperature (Hot/Iced/NA) [" << data.tempOfDrink << "]: ";
-        std::string input;
-        std::getline(std::cin, input);
-        if (input.empty()) break;
+    // Conditionally check and prompt for Temperature
+    if (itemHasTemperatureOption(data.menuItem)) {
+        while (true) {
+            std::cout << "Temperature (Hot/Iced/NA) [" << data.tempOfDrink << "]: ";
+            std::string input;
+            std::getline(std::cin, input);
+            if (input.empty()) break;
 
-        std::string lower = input;
-        for (char &c : lower) c = std::tolower(c);
+            std::string lower = input;
+            for (char &c : lower) c = std::tolower(c);
 
-        if (lower == "hot") { data.tempOfDrink = "Hot"; break; }
-        if (lower == "iced") { data.tempOfDrink = "Iced"; break; }
-        if (lower == "n/a" || lower == "na") { data.tempOfDrink = "N/A"; break; }
+            if (lower == "hot") { data.tempOfDrink = "Hot"; break; }
+            if (lower == "iced") { data.tempOfDrink = "Iced"; break; }
+            if (lower == "n/a" || lower == "na") { data.tempOfDrink = "N/A"; break; }
 
-        std::cout << "Invalid temperature. Enter 'Hot', 'Iced', or 'N/A'.\n";
+            std::cout << "Invalid temperature. Enter 'Hot', 'Iced', or 'N/A'.\n";
+        }
+    } else {
+        data.tempOfDrink = "N/A";
     }
 
-    while (true) {
-        std::cout << "Size (Regular/Large) [" << data.sizeOfItem << "]: ";
-        std::string input;
-        std::getline(std::cin, input);
-        if (input.empty()) break;
+    // Conditionally check and prompt for Size
+    if (itemHasSizeOption(data.menuItem)) {
+        while (true) {
+            std::cout << "Size (Regular/Large) [" << data.sizeOfItem << "]: ";
+            std::string input;
+            std::getline(std::cin, input);
+            if (input.empty()) break;
 
-        std::string lower = input;
-        for (char &c : lower) c = std::tolower(c);
+            std::string lower = input;
+            for (char &c : lower) c = std::tolower(c);
 
-        if (lower == "regular" || lower == "reg") { data.sizeOfItem = "Regular"; break; }
-        if (lower == "large") { data.sizeOfItem = "Large"; break; }
+            if (lower == "regular" || lower == "reg") { data.sizeOfItem = "Regular"; break; }
+            if (lower == "large") { data.sizeOfItem = "Large"; break; }
 
-        std::cout << "Invalid size. Enter 'Regular' or 'Large'.\n";
+            std::cout << "Invalid size. Enter 'Regular' or 'Large'.\n";
+        }
+    } else {
+        data.sizeOfItem = "N/A";
     }
 
     while (true) {
@@ -699,6 +807,51 @@ SalesData editSalesData(const SalesData& currentData) {
     std::string payInput;
     std::getline(std::cin, payInput);
     if (!payInput.empty()) data.modeOfPayment = payInput;
+
+    std::string lowerPayment = data.modeOfPayment;
+    for (char &c : lowerPayment) c = std::tolower(c);
+
+    if (lowerPayment == "cash") {
+        data.referenceID = 0; 
+    } else {
+        while (true) {
+            std::cout << "Reference ID [" << data.referenceID << "]: ";
+            std::string inputStr;
+            std::getline(std::cin, inputStr);
+            if (inputStr.empty()) break; 
+
+            try {
+                size_t pos = 0;
+                long long val = std::stoll(inputStr, &pos);
+                if (pos == inputStr.length() && val >= 0) {
+                    data.referenceID = val;
+                    break;
+                }
+                throw std::invalid_argument("Invalid reference ID");
+            } catch (...) {
+                std::cout << "Invalid Reference ID. Enter a positive number.\n";
+            }
+        }
+    }
+
+    while (true) {
+        std::cout << "Transaction ID [" << data.transactionID << "]: ";
+        std::string inputStr;
+        std::getline(std::cin, inputStr);
+        if (inputStr.empty()) break; 
+
+        try {
+            size_t pos = 0;
+            int val = std::stoi(inputStr, &pos);
+            if (pos == inputStr.length() && val >= 0) {
+                data.transactionID = val;
+                break;
+            }
+            throw std::invalid_argument("Invalid transaction ID");
+        } catch (...) {
+            std::cout << "Invalid Transaction ID. Enter a positive integer.\n";
+        }
+    }
 
     while (true) {
         std::cout << "Date (YYYY-MM-DD) [" << data.date << "]: ";
