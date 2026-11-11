@@ -246,7 +246,7 @@ int getYearlyItemsSold(
 }
 
 void printPaginatedPurchases(
-CafeNode &head, 
+    CafeNode &head, 
     const std::string& title, 
     int maxRecords) {
 
@@ -257,28 +257,29 @@ CafeNode &head,
         return;
     }
     
+    // Retained skip list initialization to service [S]earch calls
     MenuSkip skipList;
     skipList.buildFromList(head);
 
-    int pageSize = 10;
+    const int pageSize = 10;
     int totalNodes = getTotalTransactions(head);
 
     if (maxRecords > 0 && totalNodes > maxRecords) {
         totalNodes = maxRecords;
-        }
+    }
 
-int currentPage = 1;
+    int currentPage = 1;
     int totalPages = (totalNodes + pageSize - 1) / pageSize;
+    
+    // Statefully track the starting node of the current active page
+    CafeNode currentPageStart = head;
     std::string choice;
 
     do {
         clearScreen();
 
-        CafeNode current = head;
+        CafeNode current = currentPageStart;
         int skipCount = (currentPage - 1) * pageSize;
-        for (int i = 0; i < skipCount && current != nullptr; i++) {
-            current = current->next;
-        }
 
         std::cout << "\n================================================================================================================================\n";
         std::cout << "                                           " << title << " (PAGE " << currentPage << " / " << totalPages << ")\n";
@@ -291,14 +292,14 @@ int currentPage = 1;
 
         while (current != nullptr && printedCount < pageSize && (skipCount + printedCount) < totalNodes) {
             std::string dateDisplay = current->salesData.date;
-            if (dateDisplay == "") {
+            if (dateDisplay.empty()) {
                 dateDisplay = "-";
             }
 
             std::string itemDisplay = current->salesData.menuItem;
 
             std::string sizeDisplay = current->salesData.sizeOfItem;
-            if (sizeDisplay == "" || sizeDisplay == "None") {
+            if (sizeDisplay.empty() || sizeDisplay == "None") {
                 sizeDisplay = "-";
             }
             if (sizeDisplay.length() > 6) {
@@ -306,7 +307,7 @@ int currentPage = 1;
             }
 
             std::string tempDisplay = current->salesData.tempOfDrink;
-            if (tempDisplay == "" || tempDisplay == "None") {
+            if (tempDisplay.empty() || tempDisplay == "None") {
                 tempDisplay = "-";
             }
             if (tempDisplay.length() > 4) {
@@ -362,16 +363,37 @@ int currentPage = 1;
         } else {
             char answer = choice[0];
 
+            // Stateful forward stepping of currentPageStart (O(1) relative page navigation)
             if ((answer == 'N' || answer == 'n') && currentPage < totalPages) {
+                for (int i = 0; i < pageSize && currentPageStart != nullptr; ++i) {
+                    currentPageStart = currentPageStart->next;
+                }
                 currentPage++;
-            } else if ((answer == 'P' || answer == 'p') && currentPage > 1) {
+            } 
+            // Stateful backward stepping using doubly linked list prev pointers
+            else if ((answer == 'P' || answer == 'p') && currentPage > 1) {
+                for (int i = 0; i < pageSize && currentPageStart != nullptr; ++i) {
+                    currentPageStart = currentPageStart->prev;
+                }
                 currentPage--;
-            } else if (answer == 'G' || answer == 'g') {
+            } 
+            // Direct page jump offset calculation
+            else if (answer == 'G' || answer == 'g') {
                 int targetPage;
                 std::cout << "Enter page number (1-" << totalPages << "): ";
 
                 if (std::cin >> targetPage) {
                     if (targetPage >= 1 && targetPage <= totalPages) {
+                        int diff = targetPage - currentPage;
+                        if (diff > 0) {
+                            for (int i = 0; i < (diff * pageSize) && currentPageStart != nullptr; ++i) {
+                                currentPageStart = currentPageStart->next;
+                            }
+                        } else if (diff < 0) {
+                            for (int i = 0; i < ((-diff) * pageSize) && currentPageStart != nullptr; ++i) {
+                                currentPageStart = currentPageStart->prev;
+                            }
+                        }
                         currentPage = targetPage;
                     } else {
                         std::cout << "Invalid page number! Out of range.\n";
@@ -396,7 +418,7 @@ int currentPage = 1;
             }
         }
     } while (choice[0] != 'E' && choice[0] != 'e');
-}    
+}
 
 void printRecentPurchase(CafeNode &head) {
     if (head == nullptr) {
