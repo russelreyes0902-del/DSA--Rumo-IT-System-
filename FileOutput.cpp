@@ -10,7 +10,7 @@ const int maxPendingChanges = 100;
 PendingChanges pendingChanges[maxPendingChanges];
 int pendingCount = 0;
 
-int getListLength(Node* head) {
+int getListLength(CafeNode head) {
     int count = 0;
     while (head != nullptr) {
         count++;
@@ -57,7 +57,7 @@ void addPendingChange(const std::string& type, const std::string& detail) {
     }
 }
 
-void saveChangesToFile(Node* head, const std::string& filename) {
+void saveChangesToFile(CafeNode head, const std::string& filename) {
     std::ofstream oFile(filename);
     if (!oFile.is_open()) {
         std::cerr << "Error opening file for writing: " << filename << "\n";
@@ -66,7 +66,7 @@ void saveChangesToFile(Node* head, const std::string& filename) {
 
     oFile << "MenuItem,TempOfDrink,SizeOfItem,TypeOfDiscount,ModeOfPayment,Date,TotalPrice,UnitPrice,Quantity,ReferenceID,TransactionID,DiscountedPrice,DiscountedPercentage,isDiscounted\n";
 
-    Node* current = head;
+    CafeNode current = head;
     while (current != nullptr) {
         oFile << current->salesData.menuItem << ","
               << current->salesData.tempOfDrink << ","
@@ -96,12 +96,21 @@ void insertNode(CafeNode& head, const SalesData& newData, int position) {
         return;
     }
 
-    Node* newNode = new Node(
-        newData.menuItem, newData.tempOfDrink, newData.sizeOfItem,
-        newData.typeOfDiscount, newData.modeOfPayment, newData.date,
-        newData.totalPrice, newData.unitPrice, newData.quantity,
-        newData.referenceID, newData.transactionID, newData.discountedPrice,
-        newData.discountedPercentage, newData.isDiscounted, position
+    CafeNode newNode = new Node(
+        newData.menuItem, 
+        newData.tempOfDrink, 
+        newData.sizeOfItem,
+        newData.typeOfDiscount, 
+        newData.modeOfPayment, 
+        newData.date,
+        newData.totalPrice, 
+        newData.unitPrice, 
+        newData.quantity,
+        newData.referenceID, 
+        newData.transactionID, 
+        newData.discountedPrice,
+        newData.discountedPercentage, 
+        newData.isDiscounted, position
     );
 
     if (position == 1) {
@@ -109,7 +118,7 @@ void insertNode(CafeNode& head, const SalesData& newData, int position) {
         if (head != nullptr) head->prev = newNode;
         head = newNode;
     } else {
-        Node* current = head;
+        CafeNode current = head;
         for (int i = 1; i < position - 1; ++i) {
             current = current->next;
         }
@@ -136,7 +145,7 @@ void insertNode(CafeNode& head, const SalesData& newData, int position) {
     std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
 
     if (choice == 'Y') {
-        saveChangesToFile(head, "audit_data.csv");
+        saveChangesToFile(head, "inventory.csv");
         clearPendingChanges();
     } else {
         PendingChanges change;
@@ -148,12 +157,12 @@ void insertNode(CafeNode& head, const SalesData& newData, int position) {
     }
 }
 
-void updateNode(Node*& head, const SalesData& data, int position) {
+void updateNode(CafeNode &head, const SalesData& data, int position) {
     if (head == nullptr || position < 1) {
         std::cout << "Invalid position or empty list.\n";
         return;
     }
-    Node* current = head;
+    CafeNode current = head;
     int currentPos = 1;
 
     while (current != nullptr && currentPos < position) {
@@ -173,14 +182,14 @@ void updateNode(Node*& head, const SalesData& data, int position) {
     std::cout << "Record at position " << position << " updated successfully (Pending Save).\n";
 }
 
-void deleteNode(CafeNode& head, int position) {
+void deleteNode(CafeNode &head, int position) {
     int length = getListLength(head);
     if (head == nullptr || position < 1 || position > length) {
         std::cout << "Invalid deletion position.\n";
         return;
     }
 
-    Node* target = head;
+    CafeNode target = head;
     if (position == 1) {
         head = head->next;
         if (head != nullptr) head->prev = nullptr;
@@ -210,7 +219,7 @@ void deleteNode(CafeNode& head, int position) {
     std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
 
     if (choice == 'Y') {
-        saveChangesToFile(head, "audit_data.csv");
+        saveChangesToFile(head, "inventory.csv");
         clearPendingChanges();
     } else {
         PendingChanges change;
