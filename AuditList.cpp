@@ -27,6 +27,17 @@ CafeNode tail(CafeNode &head) {
     return current;
 }
 
+CafeNode getMiddleNode(CafeNode low, CafeNode high) {
+    CafeNode slow = low;
+    CafeNode fast = slow;
+
+    while (fast != high && fast->next != high) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    return slow;
+}
+
 std::string convertMonthToNumber(std::string monthInput) {  
 
     if (monthInput == "January" || 
@@ -229,45 +240,54 @@ int getYearlyItemsSold(
     return totalItemsSold;
 }
 
-void printRecentPurchase(CafeNode &head) {
-        if (head == nullptr) {
-            std::cout << "\nNo recent transactions." << std::endl;
-            return;
+void printPaginatedPurchases(
+    CafeNode &head, 
+    const std::string& title, 
+    int maxRecords) {
+
+    if (head == nullptr) {
+        std::cout << "\nNo transactions found." << std::endl;
+        return;
+        }
+    MenuSkip skipList;
+    skipList.buildFromList(head);
+
+    int pageSize = 10;
+    int totalNodes = getTotalTransactions(head);
+
+    if (maxRecords > 0 && totalNodes > maxRecords) {
+        totalNodes = maxRecords;
         }
 
-        MenuSkip skipList;
-        skipList.buildFromList(head);
+int currentPage = 1;
+    int totalPages = (totalNodes + pageSize - 1) / pageSize;
+    std::string choice;
 
-        int pageSize = 10;
-        int totalNodes = getTotalTransactions(head);
-        int currentPage = 1;
-        std::string choice;
-        
-        int totalPages = (totalNodes + pageSize - 1)/10;
-        do {
-            clearScreen();
+    do {
+        clearScreen();
 
-            CafeNode current = head;            
-            int skipCount = (currentPage - 1) * pageSize;
-            for (int i = 0; i < skipCount && current != nullptr; i++) {
-                current = current->next;
-            }
-            
-        std::cout << "\n====================================================================================================================================================\n";
-        std::cout << "                                                    RECENT PURCHASES (PAGE " << currentPage << " / " << totalPages << ")\n";
-        std::cout << "====================================================================================================================================================\n";
-        std::cout << "Menu Item       | Size   | Temp | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
-       std::cout << "----------------------------------------------------------------------------------------------------------------------------------------------------\n";
+        CafeNode current = head;
+        int skipCount = (currentPage - 1) * pageSize;
+        for (int i = 0; i < skipCount && current != nullptr; i++) {
+            current = current->next;
+        }
+
+        std::cout << "\n================================================================================================================================\n";
+        std::cout << "                                           " << title << " (PAGE " << currentPage << " / " << totalPages << ")\n";
+        std::cout << "================================================================================================================================\n";
+        std::cout << "Date       | Menu Item                    | Size   | Temp | Qty | Unit Price | Total Price | Payment Mode | Disc % | Disc Price \n";
+        std::cout << "--------------------------------------------------------------------------------------------------------------------------------\n";
 
         int printedCount = 0;
-        int startRecord = skipCount + 1;   
+        int startRecord = skipCount + 1;
 
-        while (current != nullptr && printedCount < pageSize) {
-            // 1. Format menuItem display (15 chars)
-            std::string itemDisplay = current->salesData.menuItem;
-            if (itemDisplay.length() > 15) {
-                itemDisplay = itemDisplay.substr(0, 12) + "...";
+        while (current != nullptr && printedCount < pageSize && (skipCount + printedCount) < totalNodes) {
+            std::string dateDisplay = current->salesData.date;
+            if (dateDisplay == "") {
+                dateDisplay = "-";
             }
+
+            std::string itemDisplay = current->salesData.menuItem;
 
             std::string sizeDisplay = current->salesData.sizeOfItem;
             if (sizeDisplay == "" || sizeDisplay == "None") {
@@ -285,19 +305,19 @@ void printRecentPurchase(CafeNode &head) {
                 tempDisplay = tempDisplay.substr(0, 4);
             }
 
-            // 5. Print formatted row with separate Extras column
-            std::cout << std::left << std::setw(15) << itemDisplay << " | "
+            std::cout << std::left << std::setw(10) << dateDisplay << " | "
+                      << std::left << std::setw(28) << itemDisplay << " | "
                       << std::left << std::setw(6)  << sizeDisplay << " | "
                       << std::left << std::setw(4)  << tempDisplay << " | "
-                      << std::right << std::setw(3) << current->salesData.quantity << " | $"
+                      << std::right << std::setw(3) << current->salesData.quantity << " | ₱"
                       << std::fixed << std::setprecision(2)
-                      << std::setw(8) << current->salesData.unitPrice << " | $"
+                      << std::setw(8) << current->salesData.unitPrice << " | ₱"
                       << std::setw(9) << current->salesData.totalPrice << " | "
                       << std::left << std::setw(12) << current->salesData.modeOfPayment;
-                      
+
             if (current->salesData.isDiscounted) {
                 std::cout << " | "
-                          << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | $"
+                          << std::right << std::setw(5) << current->salesData.discountedPercentage << "% | ₱"
                           << std::setw(9) << current->salesData.discountedPrice;
             } else {
                 std::cout << " | "
@@ -310,65 +330,256 @@ void printRecentPurchase(CafeNode &head) {
             current = current->next;
             printedCount++;
         }
-            int endRecord = skipCount + printedCount;
 
-            std::cout << "----------------------------------------------------------------------\n";
-            std::cout << "Displaying records " << startRecord << "-" << endRecord << " of " << totalNodes << "\n";
-            std::cout << "======================================================================\n";
+        int endRecord = skipCount + printedCount;
 
-            std::cout << "Controls: ";
-            if (currentPage < totalPages) std::cout << "[N]ext  ";
-            if (currentPage > 1)          std::cout << "[P]revious  ";
-            std::cout << "[G]o to Page  [S]earch  [E]xit\n";
-            std::cout << "Enter choice: ";
-            std::getline(std::cin >> std::ws, choice);
+        std::cout << "--------------------------------------------------------------------------------------------------------------------------------\n";
+        std::cout << "Displaying records " << startRecord << "-" << endRecord << " of " << totalNodes << "\n";
+        std::cout << "================================================================================================================================\n";
+
+        std::cout << "Controls: ";
+        if (currentPage < totalPages) {
+            std::cout << "[N]ext  ";
+        }
+        if (currentPage > 1) {
+            std::cout << "[P]revious  ";
+        }
+        std::cout << "[G]o to Page  [S]earch [F]ilter [E]xit\n";
+        std::cout << "Enter choice: ";
+        std::getline(std::cin >> std::ws, choice);
+
+        if (choice.length() != 1) {
+            std::cout << "Invalid input! Enter only one character at a time. Press Enter to continue..." << std::endl;
+            std::cin.get();
+        } else {
             char answer = choice[0];
-            if (choice.length() != 1) {
-                std::cout << "Invalid input! Enter only one character at a time" << std::endl;
-                std::cin.get();
-            }
-            else {
-                if ((answer == 'N' || answer == 'n') && currentPage < totalPages) {
-                    currentPage++;
-                } 
-                else if ((answer == 'P' || answer == 'p') && currentPage > 1) {
-                    currentPage--;
-                } 
-                else if (answer == 'G' || answer == 'g') {
-                    int targetPage;
-                    std::cout << "Enter page number (1-" << totalPages << "): ";
-                    
-                    // Check if the input is a valid integer
-                    if (std::cin >> targetPage) {
-                        if (targetPage >= 1 && targetPage <= totalPages) {
-                            currentPage = targetPage;
-                        } else {
-                            std::cout << "Invalid page number! Out of range.\n";
-                            std::cout << "Press Enter to continue...";
-                            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                            std::cin.get();
-                        }
-                        // Clear the leftover newline from std::cin >> targetPage
-                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            if ((answer == 'N' || answer == 'n') && currentPage < totalPages) {
+                currentPage++;
+            } else if ((answer == 'P' || answer == 'p') && currentPage > 1) {
+                currentPage--;
+            } else if (answer == 'G' || answer == 'g') {
+                int targetPage;
+                std::cout << "Enter page number (1-" << totalPages << "): ";
+
+                if (std::cin >> targetPage) {
+                    if (targetPage >= 1 && targetPage <= totalPages) {
+                        currentPage = targetPage;
                     } else {
-                        // Clear error flags caused by letters/symbols
-                        std::cin.clear();
-                        // Discard all invalid characters remaining in the buffer
+                        std::cout << "Invalid page number! Out of range.\n";
+                        std::cout << "Press Enter to continue...";
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                        
-                        std::cout << "Invalid entry! Must be a number. Press Enter to continue...";
                         std::cin.get();
                     }
-                }
-                else if (answer == 'S' || answer == 's'){
-                    printSearchPurchase(head, skipList);
-                }
-                else {
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                } else {
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     std::cout << "Invalid entry! Must be a number. Press Enter to continue...";
                     std::cin.get();
-                }   
+                }
+            } 
+            else if (answer == 'S' || answer == 's') printSearchPurchase(head, skipList);
+            else if (answer == 'F' || answer == 'f') printFilteredPurchase(head);
+            else if (answer == 'E' || answer == 'e') {
+            } else {
+                std::cout << "Invalid entry! Press Enter to continue...";
+                std::cin.get();
             }
-        } while(choice[0] != 'E' && choice[0] != 'e');
-   }
+        }
+    } while (choice[0] != 'E' && choice[0] != 'e');
+}    
+
+void printRecentPurchase(CafeNode &head) {
+    if (head == nullptr) {
+        std::cout <<"\nNo recent transaction" << std::endl;
+        return;
+    }
+
+    CafeNode tailNode = tail(head);
+    quickSort(head, head, tailNode, SortField::DATE, false);
+    printPaginatedPurchases(head, "RECENT PURCHASES", 100);
+}
+
+void printAllPurchases(CafeNode &head, const std::string& title) {
+    if (head == nullptr) {
+        std::cout <<"\nNo recent transaction" << std::endl;
+        return;
+    }
+
+    printPaginatedPurchases(head, title, -1);
+}
+
+void printSummaryStatistics(CafeNode &head) {
+    if (head == nullptr) {
+        std::cout << "\nNo transactions available for summary statistics.\n";
+        std::cout << "Press Enter to return...";
+        std::cin.get();
+        return;
+    }
+    MenuSkip skipList;
+    skipList.buildFromList(head);
+
+    std::string choice;
+    do {
+        clearScreen();
+
+        double overallRevenue = 0.0;
+        long long overallUnits = 0;
+        
+        CafeNode current = head;
+        CafeNode topItemNode = head;
+        long long maxItemUnits = -1;
+
+        while (current != nullptr) {
+            overallRevenue += current->salesData.totalPrice;
+            overallUnits += current->salesData.quantity;
+
+            if (current->salesData.quantity > maxItemUnits) {
+                maxItemUnits = current->salesData.quantity;
+                topItemNode = current;
+            }
+            current = current->next;
+        }
+        std::string highestSellingItem = (topItemNode != nullptr) ? topItemNode->salesData.menuItem : "N/A";
+       
+        std::cout << "\n======================================================================\n";
+        std::cout << "                        SALES SUMMARY STATISTICS                      \n";
+        std::cout << "======================================================================\n";
+        std::cout << "Highest Selling Item : " << highestSellingItem << "\n";
+        std::cout << "Total Revenue        : ₱" << std::fixed << std::setprecision(2) << overallRevenue << "\n";
+        std::cout << "Total Units Sold     : " << overallUnits << "\n";
+        std::cout << "----------------------------------------------------------------------\n";
+        std::cout << "Choose [Y]early, [M]onthly, [D]aily filter, or [E]xit: ";
+        
+        std::getline(std::cin >> std::ws, choice);
+
+        if (choice == "E" || choice == "e") {
+            break;
+        }
+        else if (choice == "Y" || choice == "y" || choice == "M" || choice == "m" || choice == "D" || choice == "d") {
+            std::string timeInput;
+            std::string filterTypeLabel = "";
+
+            if (choice == "Y" || choice == "y") {
+                filterTypeLabel = "Yearly";
+                std::cout << "Enter Year (e.g., 2026): ";
+            }
+            else if (choice == "M" || choice == "m") {
+                filterTypeLabel = "Yearly";
+                std::cout << "Enter Month and Year (e.g., 10-2026): ";
+            }
+            else if (choice == "D" || choice == "d") {
+                filterTypeLabel = "Daily";
+                std::cout << "Enter date (YYY-MM-DD): ";
+            }
+            std::getline(std::cin >> std::ws, timeInput);
+
+            double filteredRevenue = 0.0;
+            double filteredUnits = 0;
+            CafeNode filteredHead = nullptr;
+            CafeNode filteredTail = nullptr;
+
+            current = head;
+            while (current != nullptr) {
+                bool matches = false;
+                std::string dateStr = current->salesData.date;
+
+                if (filterTypeLabel == "Yearly") {
+                    if (dateStr.length() >= 4 && dateStr.substr(0,4) == timeInput) matches = true;
+                }
+                else if (filterTypeLabel == "Monthly") {
+                    std::string monthNum = convertMonthToNumber(timeInput);
+                    if (dateStr.length() >= 7 
+                        && 
+                        (dateStr.find(timeInput) != std::string::npos || (monthNum != "00" && dateStr.substr(5, 2) == monthNum))) {
+                        matches = true;
+                    }
+                }
+                else {
+                    int targetDateKey = parseDate(timeInput);
+                    int nodeDateKey = parseDate(dateStr);
+
+                    if (targetDateKey != 0 && nodeDateKey != 0 && nodeDateKey == targetDateKey) {
+                        matches = true;
+                    } else if (dateStr == timeInput) { // Fallback to exact string match
+                        matches = true;
+                    }
+                }
+
+                if (matches) {
+                    filteredRevenue += current->salesData.totalPrice;
+                    filteredUnits += current->salesData.quantity;
+
+                    SalesData data = current->salesData;
+                    CafeNode newNode = new Node(
+                        data.menuItem, 
+                        data.tempOfDrink, 
+                        data.sizeOfItem,
+                        data.typeOfDiscount, 
+                        data.modeOfPayment, 
+                        data.date,
+                        data.totalPrice, 
+                        data.unitPrice, 
+                        data.quantity,
+                        data.referenceID, 
+                        data.transactionID,
+                        data.discountedPrice, 
+                        data.discountedPercentage,
+                        data.isDiscounted,
+                        current->count
+                    );
+
+                    if (filteredHead == nullptr) {
+                        filteredHead = newNode;
+                        filteredTail = newNode;
+                    }
+
+                    else {
+                        filteredTail->next = newNode;
+                        newNode->prev = filteredTail;
+                        filteredTail = newNode;
+                    }
+                }
+                current = current->next;
+            }
+            std::string filteredHighest = "N/A";
+            if (filteredHead != nullptr) {
+                CafeNode fTail = tail(filteredHead);
+                quickSort(filteredHead, filteredHead, fTail, SortField::QUANTITY, false);
+                filteredHighest = filteredHead->salesData.menuItem;
+            }
+
+            clearScreen();
+
+            std::cout << "======================================================================\n";
+            std::cout << "Highest Selling Item : " << filteredHighest << "\n";
+            std::cout << "Total Revenue        : ₱" << std::fixed << std::setprecision(2) << filteredRevenue << "\n";
+            std::cout << "Total Units Sold     : " << filteredUnits << "\n";
+            std::cout << "======================================================================\n";
+            std::cout << "Options: [S]earch  [F]ilter  [B]ack to Summary  [E]xit\n";
+            std::cout << "Enter choice: ";
+
+            std::getline(std::cin >> std::ws, choice);
+            if (choice[0] == 'S' || choice[0] == 's') {
+                printSearchPurchase(head, skipList);
+            } else if (choice[0] == 'F' || choice[0] == 'f') {
+                printFilteredPurchase(head);
+            } else if (choice[0] == 'E' || choice[0] == 'e') {
+                // Free filtered list memory before exit
+                while (filteredHead != nullptr) {
+                    CafeNode temp = filteredHead;
+                    filteredHead = filteredHead->next;
+                    delete temp;
+                }
+                break;
+                
+            }
+            while (filteredHead != nullptr) {
+                CafeNode temp = filteredHead;
+                filteredHead = filteredHead->next;
+                delete temp;
+            }
+        }
+    } while(choice[0] != 'E' && choice[0] != 'e');
+} 

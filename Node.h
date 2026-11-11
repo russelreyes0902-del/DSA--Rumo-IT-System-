@@ -13,8 +13,8 @@ struct SalesData { // Groups the data into a single data struct to efficiently s
     int quantity;
     long long referenceID; // if modeOfPayment is Cash, set referenceID equal to 0.
     int transactionID;
-    int discountedPrice; // set to 0 if isDiscounted is false
-    int discountedPercentage; // set to 0 if isDiscounted is false
+    double discountedPrice; // set to 0 if isDiscounted is false
+    double discountedPercentage; // set to 0 if isDiscounted is false
     bool isDiscounted; 
 };
 
@@ -28,7 +28,7 @@ struct Node {
         std::string tOD, std::string mOP,
         std::string d, double tP, double uP,
         int q, long long rID, int tID, 
-        int dPrice, int dPercent, bool isD,
+        double dPrice, double dPercent, bool isD,
         int c
         ) {
         salesData = {

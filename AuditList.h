@@ -1,13 +1,13 @@
 #pragma once
 #include "Node.h"
-//#include "Search.h"
-//#include "Sort.h"
-#include <iomanip>
-#include <iostream>
+#include "Search.h"
+#include "Sort.h"
 
 void clearScreen();
 
 CafeNode tail(CafeNode &head);
+
+CafeNode getMiddleNode(CafeNode low, CafeNode high);
 
 std::string convertMonthToNumber(std::string monthInput);
 
@@ -35,4 +35,10 @@ int getYearlyItemsSold(
     std::string targetSize = ""
     );
 
+void printPaginatedPurchases(CafeNode &head, const std::string& title, int maxRecords);
+
 void printRecentPurchase(CafeNode &head);
+
+void printAllPurchases(CafeNode &head, const std::string& title = "ALL PURCHASES");
+
+void printSummaryStatistics(CafeNode &head);
