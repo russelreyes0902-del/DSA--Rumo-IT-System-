@@ -246,14 +246,17 @@ int getYearlyItemsSold(
 }
 
 void printPaginatedPurchases(
-    CafeNode &head, 
+CafeNode &head, 
     const std::string& title, 
     int maxRecords) {
 
     if (head == nullptr) {
-        std::cout << "\nNo transactions found." << std::endl;
+        std::cout << "\nNo transactions found.\n";
+        std::cout << "Press Enter to return to main menu...";
+        std::cin.get();
         return;
-        }
+    }
+    
     MenuSkip skipList;
     skipList.buildFromList(head);
 
@@ -397,7 +400,9 @@ int currentPage = 1;
 
 void printRecentPurchase(CafeNode &head) {
     if (head == nullptr) {
-        std::cout <<"\nNo recent transaction" << std::endl;
+        std::cout << "\nNo transactions found.\n";
+        std::cout << "Press Enter to return to main menu...";
+        std::cin.get();
         return;
     }
 
@@ -408,7 +413,9 @@ void printRecentPurchase(CafeNode &head) {
 
 void printAllPurchases(CafeNode &head, const std::string& title) {
     if (head == nullptr) {
-        std::cout <<"\nNo recent transaction" << std::endl;
+        std::cout << "\nNo transactions found.\n";
+        std::cout << "Press Enter to return to main menu...";
+        std::cin.get();
         return;
     }
 
@@ -471,7 +478,7 @@ void printSummaryStatistics(CafeNode &head) {
                 std::cout << "Enter Year (e.g., 2026): ";
             }
             else if (choice == "M" || choice == "m") {
-                filterTypeLabel = "Yearly";
+                filterTypeLabel = "Monthly";
                 std::cout << "Enter Month and Year (e.g., 10-2026): ";
             }
             else if (choice == "D" || choice == "d") {
@@ -1220,7 +1227,7 @@ void auditMenuHandler(CafeNode& head, const std::string& filename) {
                     confirmChar = std::toupper(confirmChar);
                     std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
 
-                    if (confirmChar == 'Y' && confirmChar == 'y') {
+                    if (confirmChar == 'Y' || confirmChar == 'y') {
                         deleteNode(head, pos);
                     } else {
                         std::cout << "\n Deletion cancelled. Record was retained.\n";
